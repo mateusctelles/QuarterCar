@@ -10,53 +10,276 @@ int main(){
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
-/*
-char exit = 'n';
 
-while(exit == 'n'){
-*/
+char cont = 'y';
+double m_s; 
+double k_w;
+double DR; 
+double m_u; 
+double k_t;
+double c_t;
+double k_stopper;
+double travel_limit; 
+int inptype; 
+char vparamrep;
+int inputsim;
+int paramtype;
+int changeinp;
+int next;
+char sig;
+double t_final= 2; 
+double dt = 0.0001;
+std::string input; 
+double A; 
+double w_sin;  
+double height;
+double inclination;
+double f_start;
+double f_end; 
+double A_swp;
+std::string filename;
+char filter; 
+int windowSize; 
+double scaling; 
 
+
+   std::cout<<" ------------------------------------------------------------------------------------------------------------ \n";
+   std::cout<<" |                                        QUARTER CAR SIMULATOR                                             | \n";
+   std::cout<<" |                                                                                                          | \n";
+   std::cout<<" -- Version 0.2. Release Date: 01/02/2023                                                 By Mateus Telles -- \n";
+   std::cout<< " ----------------------------------------------------------------------------------------------------------- \n";
+   std::cout<<"                                                                                                          \n";
+   std::cout<<"                                                                                                         \n";
+
+
+while(cont == 'y'){
 
 // ------------------------------------------- USER INPUTS -----------------------------------------------
-   // Vehicle Parameters
+// Vehicle Parameters
+   
 
-   /*char inptype
-   std::cout<< "Type 1 to define vehicle parameters in the console, type 0 to define vehicle parameters in the console"<< std::endl;
-   std::cin>>inptype; */
-   double m_s = 120; 
-   double k_w = 7680;
-   double DR = 0.50; 
-   double m_u = 30; 
-   double k_t = 90000;
-   double c_t = 0 ;
-   double k_stopper = 900000;
-   double travel_limit = 0.80;
+   //std::cout<<" ------------------------------------------------------------------------------------------------------------ \n\n";
+   std::cout<<" -----------------------------------------------  START ----------------------------------------------- \n\n";
+   
+   std::cout<<"Do you wish to define vehicle parameters? Type 'y' to yes, or 'n' to keep the previously defined parameters.\n";
+   std::cout<<"Selection: ";
+   std::cin>>vparamrep;
+   if(vparamrep=='y'){
+   //std::cout<<"\n------------------------------------------------------------------------------------------------------------\n";
+   std::cout<<"---------------------------------------------- VEHICLE PARAMETERS ------------------------------------------ \n";;
+   std::cout<<"\nType '1' to define all vehicle parameters in the console.\n" ;
+   std::cout<<"Type '2' to change single selected parameters.\n";
+   std::cout<<"Type '3' to use all vehicle parameters defined in the code. \n";
+   std::cout<<"Type '4' to keep the previous vehicle parameters \n"<< std::endl;
+   std::cout<<"Selection: ";
+   std::cin>>paramtype; 
+   std::cout<<"--------------------------------------------------------\n";
+   //std::cout<<"\n----------------------------------------------------------------------------------------------------------\n";
+   if(paramtype==1){
+
+        std::cout<<"\n------------------------ OPTION 1 SELECTED: ALL VEHICLE PARAMETERS DEFINITION -----------------------\n";   
+        std::cout<< "\nDefine the vehicle quarter sprung mass [Kg]: ";
+        std::cin>> m_s;
+
+        std::cout<< "\nDefine the suspension stiffness [K/m]: ";
+        std::cin>> k_w;
+
+        std::cout<< "\nDefine the Suspension Damping Ratio: ";
+        std::cin>> DR;
+
+        std::cout<< "\nDefine the suspension travel until bumpstop [m]: ";
+        std::cin>> travel_limit;
+        
+        std::cout<< "\nDefine the vehicle quarter unsprung mass [Kg]: ";
+        std::cin>> m_u;
+
+        std::cout<< "\nDefine the Tire Vertical Stiffness [N/m]: ";
+        std::cin>> k_t;
+
+        std::cout<< "\nDefine the Tire Damping Ns/m: ";
+        std::cin>> c_t;
+
+        std::cout<< "\nDefine bumpstop stiffness [N/m]: ";
+        std::cin>> k_stopper;
+    }
+
+   else if(paramtype==2) {
+    char repeat1 = 'y';
+    int param;
+        while(repeat1=='y'){
+
+            
+            std::cout<<"\nWhich parameter you wish to change? \n\n";
+            std::cout<<"(1) Sprung Mass [Kg]\n";
+            std::cout<<"(2) Suspension Stiffness [N/m]\n";
+            std::cout<<"(3) Suspension Damping Ratio\n";
+            std::cout<<"(4) Suspension Travel Limit [m]\n";
+            std::cout<<"(5) Unsprung Mass [Kg]\n";
+            std::cout<<"(6) Tire Vertical Stiffness [N/m]\n";
+            std::cout<<"(7) Bumpstop Stiffness [N/m]\n\n";
+            std::cout<<"Selection: ";
+            std::cin>>param;
+            std::cout<<"-----------------------------------------------\n";
+
+            if(param==1){
+                    std::cout<< "\nDefine the vehicle quarter sprung mass [Kg]: ";
+                    std::cin>>m_s;
+                    }
+
+            else if(param==2){
+                    std::cout<< "\nDefine the suspension stiffness [K/m]: ";
+                    std::cin>>k_w;
+                    }
+
+            else if(param==3){
+                    std::cout<< "\nDefine the Suspension Damping Ratio: ";
+                    std::cin>>DR;
+                    }
+
+            else if(param==4){
+                    std::cout<< "\nDefine the suspension travel until bumpstop [m]: ";
+                    std::cin>>travel_limit;
+                    }
+
+            else if(param==5){
+                    std::cout<< "\nDefine the vehicle quarter unsprung mass [Kg]: ";
+                    std::cin>>m_u;}
+                                   
+            else if(param==6){
+                    std::cout<< "\nDefine the Tire Vertical Stiffness [N/m]: ";
+                    std::cin>>k_t;}
+                    
+            else if(param==7){
+                    std::cout<< "\nDefine bumpstop stiffness [N/m]: ";
+                    std::cin>>k_stopper;    
+                                 
+            }
+            std::cout<<"\nWant to change other parameter? ('y' or 'n'): ";
+            std::cin>> repeat1;
+            std::cout<<"--------------------------------------------------\n";
+        }
+            
+    }
+
+   else if(paramtype==3){
+        m_s = 120; 
+        k_w = 7680; 
+        DR = 0.50; 
+        m_u = 30; 
+        k_t = 90000; 
+        c_t = 0; 
+        k_stopper = 900000; 
+        travel_limit = 0.80; 
+         
+    }
+   }
+   std::cout<<"\n\n--------------------------------------- SIMULATION PARAMETERS -------------------------------------------- \n";
+   //std::cout<<"\nSIMULATION PARAMETERS:\n";
+   //std::cout<<"\nType '0' if you want to define simulation parameters in the console, type '1' if want to use the parameters in the code, \ntype '2' if want to keep parameters from last run.\n";
+   std::cout<<"\n[1] Define simulation parameters in the console\n";
+   std::cout<<"[2] Use parameters defined in the code. \n";
+   std::cout<<"[3] Keep parameters from previous run.\n";
+
+   
+   std::cout<<"\nSelection: ";
+   std::cin>>inputsim;
+   std::cout<<"\n--------------------------------------------\n";
+   if(inputsim == 2){
 
    // Simulation Parameters
-   double t_final= 2;
-   double dt = 0.0001;
-   std::string input = "file"; // Select input between "sine", "ramp", "swept", "custom" and "file".
+   t_final= 2; 
+   dt = 0.0001; 
+   std::string input = "file"; // Select input between "sine", "ramp", "swept", "custom" and "file". 
    
    // Sine Wave Input Parameters
-   double A = 0.1; // meters
-   double w_sin = 10; // Hz
+   A = 0.1; // meters
+   w_sin = 10; // Hz
    
    // Ramp Input Parameters
-   double height = 0.1;
-   double inclination = 0.3;
-   char sig = '=';
+   height = 0.1;
+   inclination = 0.3;
+   sig = '=';
 
    // Swept Sine Input Parameters
-   double f_start = 0;
-   double f_end = 20; 
-   double A_swp = 0.1;
+   f_start = 0;
+   f_end = 20; 
+   A_swp = 0.1;
 
    // File import Parameters
 
-   std::string filename  = "signal.csv"; // Enter filename. If file is in other path, provide address.
-   char filter = 'y'; // Choose between "y" for yes, or "n" for no.
-   int windowSize = 100; // Number of samples
-   double scaling = 1; // Scales input signal from file. Default 1.0 for no scaling.
+   filename  = "signal.csv"; // Enter filename. If file is in other path, provide address.
+   filter = 'y'; // Choose between "y" for yes, or "n" for no.
+   windowSize = 100; // Number of samples
+   scaling = 1; // Scales input signal from file. Default 1.0 for no scaling.
+   }
+
+   else if(inputsim==1) {
+        std::cout<<"\nInsert Simulation Time [s]: ";
+        std::cin>>t_final;
+        std::cout<<"\nInsert Step Size [s]: ";
+        std::cin>>dt;
+        std::cout<<"\n--------------------------------------------";
+        std::cout<<"\n[1] Define signal input type and its parameters.";
+        std::cout<<"\n[2] Keep the same settings from last run.\n";
+        std::cout<<"\nSelection: ";
+        std::cin>>changeinp;
+        std::cout<<"\n--------------------------------------------";
+
+        if(changeinp==1){
+
+            std::cout<<"\nDefine Input Type: (1) Sine Wave     (2) Swept Sine      (3) Ramp       (4) Import Displacement Signal from File\n";
+            std::cout<<"Selection: ";
+            std::cin>>inptype;
+            std::cout<<"\n--------------------------------------------";
+
+            if(inptype==1){
+                std::cout<<"\nSine Wave input method selected.";
+                std::cout<<"\nDefine the Sine Wave Amplitude [m]: ";
+                std::cin>>A; // meters
+                std::cout<<"Define the sine frequency [Hz]: ";
+                std::cin>>w_sin;
+                
+            }
+            else if(inptype==2){ 
+                std::cout<<"\nSwept Sine input method selected.";
+                std::cout<<"\nDefine the start of frequency range [Hz]: ";
+                std::cin>>f_start;
+                std::cout<<"\nDefine the end of the frequency range [Hz]: ";
+                std::cin>>f_end;
+                std::cout<<"Define the Amplitude of the swept sine wave [m]: ";
+                std::cin>>A_swp;     
+            }
+            else if(inptype==3){
+                std::cout<<"\nRamp Sequence input method selected.";
+                std::cout<<"\nDefine the height of the ramp [m]: ";
+                std::cin>>height;
+                std::cout<<"\nDefine the inclination of the ramp [m]: ";
+                std::cin>>inclination;
+            }
+            else if(inptype==4){ 
+                std::cout<<"\n\nImport File input method selected. File must have a displacement time signal with a time duration equal or greater than the simulation time.";
+                std::cout<<"\nWrite the file name with the file extension. If file is in different folder than executable, provide file path.\n";
+                std::cout<<"\nFile: ";
+                std::cin>>filename;
+                std::cout<<"\n--------------------------------------------\n";
+                std::cout<<"\nDefine the scaling of the signal. Type '1' if no scaling is desired.\n";
+                std::cout<<"\nScaling: ";
+                std::cin>> scaling;
+                std::cout<<"\n--------------------------------------------\n";
+                std::cout<<"\nDo you wish to filter the signal (Moving Average Method)? Type 'y' or 'n': ";
+                std::cin>>filter;
+                if (filter=='y'){
+                    std::cout<<"Define the window size [number of samples]: ";
+                    std::cin>>windowSize;
+                    std::cout<<"\n-------------------------------------------------------------------------------------------\n";
+                }
+            }
+        }
+    }     
+    
+    else if(inputsim==3){ 
+
+   }       
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -68,9 +291,10 @@ while(exit == 'n'){
 
    //w_ride = 1/2/pi*((k_w*k_t)/(k_w+k_t)/m_s)^0.5;
    //c_w= 1*(2*w_ride*2*pi*m_s);
-
-   std::cout <<"\nNatural Frequency: " << w_ride << " Hz"<< std::endl;
-   std::cout <<"Damping: " << c_w << "\n"<< std::endl;
+   std::cout<<"\n-----------------------------------------------------------------------------\n\n";
+   std::cout <<"\n                         Natural Frequency: " << w_ride << " Hz"<< std::endl;
+   std::cout <<"                         Damping: " << c_w << "\n\n\n"<< std::endl;
+   std::cout<<"\n------------------------------------------------------------------------------\n\n";
 
    // Calculate the number of steps required for the simulation
    int numSteps = t_final/dt;
@@ -84,6 +308,7 @@ while(exit == 'n'){
    std::vector<double> y_s(numSteps, 0.0);
    std::vector<double> y_g(numSteps, 0.0);
    std::vector<double> v_g(numSteps, 0.0);
+
    std::vector<double> F_b(numSteps, 0.0);
    std::vector<double> F_spring(numSteps, 0.0);
    std::vector<double> F_damper(numSteps, 0.0);
@@ -101,7 +326,7 @@ while(exit == 'n'){
 
     // Building the Input Signal based on the method selected by the user.
     
-    if (input =="file"){
+    if (inptype==4){
         //std::cout<<" Em construção"<<std::endl;
 
         std::cout<<"File import input method selected. \n\n";
@@ -222,13 +447,13 @@ while(exit == 'n'){
     }
     //--------------------------------------------
     
-    else if (input == "sine"){
+    else if (inptype == 1){
        for (int i=0; i<numSteps-1; i++){
            y_g[i] = A*std::sin(w_sin*2*M_PI*i*dt);
         } 
     }
 
-    else if (input == "ramp"){
+    else if (inptype == 3){
         for (int i=0; i<numSteps-1; i++){
             
             if (y_g[i] < height){
@@ -243,7 +468,7 @@ while(exit == 'n'){
         }
     }
 
-    else if (input=="swept"){
+    else if (inptype==2){
         for (int i=0; i<numSteps-1; i++){
             double tswp=i*dt;
             double fcurr= f_start +(f_end - f_start)*tswp/t_final;
@@ -266,7 +491,7 @@ while(exit == 'n'){
          F_b[i]=0;
         }
       else {
-         F_b[i]=k_stopper*delta_ys[i];
+         F_b[i]=k_stopper*(delta_ys[i]-travel_limit);
       } 
       
         F_spring[i] = k_w*(y_s[i]-y_u[i]);
@@ -380,12 +605,13 @@ while(exit == 'n'){
    xlabel("Time [s]");
    ylabel("Acceleration [m/s²]"); 
 
-
-
    show();
    //save("img/QuarterCar.jpg");
 
-    //}
+  std::cout<<"Do you wish to run a new simulation? (y/n): "<<std::endl;  
+  std::cin>>cont; 
+  next = next+1;
+}
       
    return 0;
 
