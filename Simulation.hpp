@@ -12,6 +12,7 @@ private:
 
    double t_final=2.0;
    double dt = 0.001;
+   Road* road_;
 
    std::vector<double> a_u;
    std::vector<double> v_u;
@@ -36,9 +37,17 @@ public:
     Simulation(double t_final_In, double dtIn);
 
        
-    void Simulate(Car &car, Road &road);
+    void getSimParams();
+    void getSineRoadFromUser();
+    void getSweptSineRoadFromUser();
+    void getFileRoadFromUser();
+    void getRampRoadFromUser();
 
-    void Graph();
+    Road* getRoad(){return road_;}
+
+    void Simulate(Car &car);
+
+    char Graph();
 
 };
 

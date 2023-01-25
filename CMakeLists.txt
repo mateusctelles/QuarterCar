@@ -2,7 +2,7 @@ project(QuarterCar)
 
 add_subdirectory(matplotplusplus)
 
-add_executable(${PROJECT_NAME} main.cpp Car.cpp Road.cpp Simulation.cpp)
+add_executable(${PROJECT_NAME} main.cpp Car.cpp Road.cpp Simulation.cpp Spring.cpp Damper.cpp ModelBuilder.cpp)
 #add_executable("testematplotpp1" testematplotpp.cpp)
 #add_executable("sciplot" sciplot.cpp)
 

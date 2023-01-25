@@ -54,8 +54,8 @@ private:
     std::vector<double> position;
     std::string filename;
     char filter;
-    int windowSize = 100;
-    double scaling = 1;
+    int windowSize;
+    double scaling;
     void FilterMA(); 
 public:
     //FileRoad()=delete;

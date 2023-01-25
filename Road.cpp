@@ -7,12 +7,16 @@
 SineRoad::SineRoad(double amp, double freq): A(amp), f_sin(freq){}
 
 std::vector<double> SineRoad::CalcRoad(double t_final, double dt){
+    std::cout<<"\nCreating Road: Level 1";
     int numSteps=t_final/dt;
+    std::cout<<"\nGot NumSteps:" << numSteps;
+    
     y_g.resize(numSteps,0.0);
     for (int i=0; i<numSteps; i++){
         y_g[i] = A*std::sin(f_sin*2*M_PI*i*dt);
     }
-    
+
+    std::cout<<"\ny_g sucessfully resized to the number: " << y_g.size();    
     return y_g;
 }
 
@@ -39,8 +43,7 @@ std::vector<double>RampRoad::CalcRoad(double t_final, double dt){
     
     int numSteps=t_final/dt;
     y_g.resize(numSteps,0.0);
-    for (int i=0; i<numSteps-1; i++){
-            
+    for (int i=0; i<numSteps-1; i++){   
         if (y_g[i] < height){
             y_g[i+1] = y_g[i] + inclination*dt;
         }
@@ -88,7 +91,6 @@ FileRoad::FileRoad(std::string fileNameIn, char filterIn, int windowSizeIn, doub
     }
 }
 
-
 void FileRoad::FilterMA(){
         std::cout<<"Performing Moving Average filtering with window size of "<<windowSize<<". . .\n";
         std::vector<double> filteredSignal(position.size());
@@ -120,7 +122,7 @@ std::vector<double>FileRoad::CalcRoad(double t_final, double dt){
 
     double last_ftime = file_time.back();
     if (last_ftime>=t_final){
-        std::cout<<"Parsing finished.\nThe original signal has "<<last_ftime<<" seconds and " <<file_nsamples<< " samples.\n" << std::endl;
+        std::cout<<"\nParsing finished.\nThe original signal has "<<last_ftime<<" seconds and " <<file_nsamples<< " samples.\n" << std::endl;
     }
     else {
         throw std::runtime_error("ERROR: The simulation time is longer than the time signal. This is currently not supported.\n\n\n");
