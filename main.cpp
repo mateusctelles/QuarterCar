@@ -21,16 +21,12 @@ char repeat='u';
             model.getSimParams();
 
             Car car = model.getCar();
-            Road* road= model.getRoad();
-            
-       
+            Road* road= model.getRoad();     
             Simulation sim = model.getSim();
-            //sim.getSimParams();
 
             sim.Simulate(car, *road);
             model.printAttributes();
             
-            //sim.Graph();
             repeat = sim.Graph();
 
             if (repeat != 'y' && repeat != 'u') {

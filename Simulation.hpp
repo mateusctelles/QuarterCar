@@ -60,11 +60,6 @@ public:
 
     void setSimTotalTime(double simulationTime) { simulationTime_ = simulationTime; }
     void setSimStepSize(double timeStepSize) { timeStepSize_ = timeStepSize; }
-    void getSimParams();
-    void getSineRoadFromUser();
-    void getSweptSineRoadFromUser();
-    void getFileRoadFromUser();
-    void getRampRoadFromUser();
 
     double getDisplacementUnitScaling(){return displacementUnitScaling_;}
     double getStiffnessUnitScaling(){ return stiffnessUnitScaling_;}
@@ -97,6 +92,7 @@ public:
     void setDampingUnit(std::string dampingUnit){dampingUnit_=dampingUnit;}
 
     void Simulate(Car &car, Road &road);
+    void StaticEquilibrium(Car &car);
 
     char Graph();
 };

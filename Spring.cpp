@@ -17,7 +17,7 @@ NonLinearSpring::NonLinearSpring(double stiffness) {
 }
 
 double NonLinearSpring::getStiffness(double displacement) {
-    staticPosition = 4;
+    double staticPosition = 4;
     return stiffness*pow(displacement+staticPosition, 2);
 }
 

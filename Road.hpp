@@ -7,10 +7,10 @@
 #include <vector>
 
 class Road{
-protected:
-    std::vector<double> roadLine;
+/*protected:
+    std::vector<double> roadLine;*/
 public:
-    virtual std::vector<double> CalcRoad(double t_final, double dt)=0;
+    virtual std::vector<double> CalcRoad(double simulationTime, double timeStepSize)=0;
 };
 
 class SineRoad : public Road{
@@ -21,7 +21,7 @@ private:
 public:
     SineRoad()=default;
     SineRoad(double amplitude, double frequency);
-    std::vector<double> CalcRoad(double t_finalIn, double dtIn) override;    
+    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;    
 };
 
 class SweptSine : public Road{
@@ -60,18 +60,17 @@ private:
 public:
     //FileRoad()=delete;
     FileRoad(std::string fileNameIn="signal.csv", char filterIn='y', int windowSizeIn=100, double scalingIn=1.0);
-    std::vector<double> CalcRoad(double t_final, double dt) override;      
+    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;      
     
 };
 
 class CurbRoad: public Road{
 private:
     double height;
-    double numberOfCurbs;
 
 public:
     CurbRoad(double height);
-    std::vector<double> CalcRoad(double t_final, double dt) override;
+    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;
 };
 
 #endif

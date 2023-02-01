@@ -3,6 +3,19 @@
 
 Simulation::Simulation(double t_final_In, double dtIn) : simulationTime_(t_final_In), timeStepSize_(dtIn) {}
 
+void Simulation::StaticEquilibrium(Car &car)
+{
+  double suspStiffness = car.getSpring()->getStiffness(0);
+  double tireStiffness = car.getTireStiffness();
+
+  double suspSpringDeflection = (car.getSprungMass()*9810/suspStiffness);
+  double tireSpringDeflection = (car.getSprungMass()+car.getUnsprungMass())*9810/tireStiffness;
+
+  double sprungMassDeflection = suspSpringDeflection + tireSpringDeflection;
+
+
+}
+
 void Simulation::Simulate(Car &car, Road &road)
 {
 
@@ -100,7 +113,7 @@ void Simulation::Simulate(Car &car, Road &road)
     }*/
 
     sprungMassAcc[i] = ((-springForce[i] - damperForce[i] - bumpStopForce[i]) / (car.getSprungMass()));                       // Acceleration of sprung mass
-    unsprungMassAcc[i] = (-tireElasticForce[i] + springForce[i] + damperForce[i] + bumpStopForce[i]) / car.getUnsprungMass(); // Acceleration of unsprung mass
+    unsprungMassAcc[i] = (-tireDamperForce[i] - tireElasticForce[i] + springForce[i] + damperForce[i] + bumpStopForce[i]) / car.getUnsprungMass(); // Acceleration of unsprung mass
     sprungMassVelocity[i + 1] = sprungMassAcc[i] * timeStepSize_ + sprungMassVelocity[i];                                     // Velocity of sprung mass
     unsprungMassVelocity[i + 1] = unsprungMassAcc[i] * timeStepSize_ + unsprungMassVelocity[i];                               // Velocity of unsprung mass
     sprungMassDisplacement[i + 1] = sprungMassVelocity[i] * timeStepSize_ + sprungMassDisplacement[i];                        // Position of sprung mass
@@ -256,9 +269,9 @@ char Simulation::Graph()
     auto p2 = plot(time, sprungMassPosition);
     p2->line_width(wdt);
     p2->display_name("Sprung");
-    auto p20 = plot(time, relativeDisplacementVector);
+    /*auto p20 = plot(time, relativeDisplacementVector);
     p20->line_width(wdt);
-    p20->display_name("Difference");
+    p20->display_name("Difference");*/
     auto lgd = legend(on);
     lgd->font_name("Arial");
     xlabel("Time [s]");

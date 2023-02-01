@@ -11,8 +11,7 @@ std::vector<double> CurbRoad::CalcRoad(double simulationTime, double timeStepSiz
     std::cout<<"\nHeight defined: "<<height;
     int numSteps = simulationTime / timeStepSize;
     double simPart;
-
-    roadLine.resize(numSteps, 0.0);
+    std::vector<double> roadLine(numSteps, 0.0);
     for (int i=0; i<numSteps;i++)
     {
         simPart = (double) i/numSteps;
@@ -45,7 +44,7 @@ std::vector<double> SineRoad::CalcRoad(double simulationTime, double timeStepSiz
     int numSteps = simulationTime / timeStepSize;
     std::cout << "\nGot NumSteps:" << numSteps;
 
-    roadLine.resize(numSteps, 0.0);
+    std::vector<double> roadLine(numSteps, 0.0);
     for (int i = 0; i < numSteps; i++)
     {
         roadLine[i] = amplitude_ * std::sin(frequency_ * 2 * M_PI * i * timeStepSize);
@@ -61,7 +60,7 @@ std::vector<double> SweptSine::CalcRoad(double simulationTime, double timeStepSi
 {
     std::cout << "\nCalculating SweptSine Road with the frequency range between "<<frequencyStart <<" - "<< frequencyEnd<< std::endl;
     int numSteps = simulationTime / timeStepSize;
-    roadLine.resize(numSteps, 0.0);
+    std::vector<double> roadLine(numSteps, 0.0);
     for (int i = 0; i < numSteps - 1; i++)
     {
         double time = i * timeStepSize;
@@ -75,16 +74,16 @@ std::vector<double> SweptSine::CalcRoad(double simulationTime, double timeStepSi
 
 RampRoad::RampRoad(double heightIn, double inclinationIn) : height_(heightIn), inclination_(inclinationIn) {}
 
-std::vector<double> RampRoad::CalcRoad(double t_final, double dt)
+std::vector<double> RampRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
 
-    int numSteps = t_final / dt;
-    roadLine.resize(numSteps, 0.0);
+    int numSteps = simulationTime / timeStepSize;
+    std::vector<double> roadLine(numSteps, 0.0);
     for (int i = 0; i < numSteps - 1; i++)
     {
         if (roadLine[i] < height_)
         {
-            roadLine[i + 1] = roadLine[i] + inclination_*height_ * dt;
+            roadLine[i + 1] = roadLine[i] + inclination_*height_ * timeStepSize;
             //std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
         }
         else
@@ -163,16 +162,16 @@ void FileRoad::FilterMA()
     std::cout << "Signal Filtered Sucessfully\n\n";
 }
 
-std::vector<double> FileRoad::CalcRoad(double t_final, double dt)
+std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
-    int numSteps = t_final / dt;
-    roadLine.resize(numSteps, 0.0);
+    int numSteps = simulationTime / timeStepSize;
+    std::vector<double> roadLine(numSteps, 0.0);
     double original_stepsize = file_time[2] - file_time[1];
     std::vector<double> rsmp_time(numSteps, 0.0);
     int file_nsamples = file_time.size();
 
     double last_ftime = file_time.back();
-    if (last_ftime >= t_final)
+    if (last_ftime >= simulationTime)
     {
         std::cout << "\nParsing finished.\nThe original signal has " << last_ftime << " seconds and " << file_nsamples << " samples.\n"
                   << std::endl;
@@ -189,10 +188,10 @@ std::vector<double> FileRoad::CalcRoad(double t_final, double dt)
     // Cutting the imported time signal to fit the used-defined simulation
     std::cout << "Matching file signal size with used-defined simulation time\n\n";
     double total_ftime = 0;
-    while (total_ftime < t_final)
+    while (total_ftime < simulationTime)
     {
         total_ftime = total_ftime + original_stepsize;
-        // std::cout<<"total_ftime = "<<total_ftime << "; t_final = "<<t_final<<std::endl;
+        // std::cout<<"total_ftime = "<<total_ftime << "; simulationTime = "<<simulationTime<<std::endl;
     }
     double file_nsamples_cut = total_ftime / original_stepsize;
     // Applying moving average filter
@@ -219,7 +218,7 @@ std::vector<double> FileRoad::CalcRoad(double t_final, double dt)
     double resampled_stepsize = rsmp_time[2] - rsmp_time[1];
 
     std::cout << "\n################################################################### \n\n";
-    std::cout << "The input signal was resampled to fit used-defined Step Size of " << dt << "." << std::endl;
+    std::cout << "The input signal was resampled to fit used-defined Step Size of " << timeStepSize << "." << std::endl;
     std::cout << "The original vector size was " << position.size() << ", and now is " << roadLine.size() << std::endl;
     std::cout << "The original step size was " << original_stepsize << ", and the step size is now " << resampled_stepsize << ".\n\n\n"
               << std::endl;

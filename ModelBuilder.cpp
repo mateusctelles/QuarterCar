@@ -218,7 +218,7 @@ void ModelBuilder::getTravelLimitFromUser()
     std::cout << "\nEnter the travel limit " << sim.getDisplacementUnit() << ": ";
     std::cin >> travelLimit;
     car_.setMaxTravel(travelLimit * sim.getDisplacementUnitScaling());
-    std::cout << "\nCar received Max Travel: " << car_.getMaxBumpTravel() << std::endl;
+    //std::cout << "\nCar received Max Travel: " << car_.getMaxBumpTravel() << std::endl;
 }
 
 void ModelBuilder::getStaticHeightFromUser()
@@ -235,7 +235,7 @@ void ModelBuilder::getStopperStiffnessFromUser()
     std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> kStopper;
     car_.setKBumpstop(kStopper * sim.getStiffnessUnitScaling());
-    std::cout << "\nCar received Bumpstop Stiffness: " << car_.getBumpStopStiffness();
+    //std::cout << "\nCar received Bumpstop Stiffness: " << car_.getBumpStopStiffness();
 }
 
 void ModelBuilder::getTireStiffnessFromUser()
@@ -244,7 +244,7 @@ void ModelBuilder::getTireStiffnessFromUser()
     std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> kTire;
     car_.setTireStiffness(kTire * sim.getStiffnessUnitScaling());
-    std::cout << "\nCar received Tire Stiffness: " << car_.getTireStiffness() << std::endl;
+    //std::cout << "\nCar received Tire Stiffness: " << car_.getTireStiffness() << std::endl;
 }
 
 void ModelBuilder::getTireDampingFromUser()

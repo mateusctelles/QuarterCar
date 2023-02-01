@@ -25,7 +25,6 @@ public:
 class NonLinearSpring : public Spring {
 private:
     double stiffness;
-    double staticPosition;
 public:
     NonLinearSpring() = default;
     NonLinearSpring(double stiffness);
