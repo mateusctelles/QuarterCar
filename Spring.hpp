@@ -8,7 +8,7 @@
 class Spring {
 public:
    // Spring() = default;
-    virtual double getStiffness() = 0;
+    virtual double getStiffness(double displacement) = 0;
     virtual void setStiffness(double stiffness) = 0;
 };
 
@@ -18,17 +18,18 @@ private:
 public:
     LinearSpring() = default;
     LinearSpring(double stiffness);
-    double getStiffness();
+    double getStiffness(double displacement);
     void setStiffness(double stiffness);
 };
 
 class NonLinearSpring : public Spring {
 private:
     double stiffness;
+    double staticPosition;
 public:
     NonLinearSpring() = default;
     NonLinearSpring(double stiffness);
-    double getStiffness();
+    double getStiffness(double displacement);
     void setStiffness(double stiffness);
 };
 

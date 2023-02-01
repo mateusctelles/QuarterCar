@@ -4,7 +4,7 @@ LinearSpring::LinearSpring(double stiffness) {
     this->stiffness = stiffness;
 }
 
-double LinearSpring::getStiffness() {
+double LinearSpring::getStiffness(double displacement) {
     return stiffness;
 }
 
@@ -16,8 +16,9 @@ NonLinearSpring::NonLinearSpring(double stiffness) {
     this->stiffness = stiffness;
 }
 
-double NonLinearSpring::getStiffness() {
-    return stiffness;
+double NonLinearSpring::getStiffness(double displacement) {
+    staticPosition = 4;
+    return stiffness*pow(displacement+staticPosition, 2);
 }
 
 void NonLinearSpring::setStiffness(double stiffness) {

@@ -1,25 +1,28 @@
 #include "Damper.hpp"
 
-LinearDamper::LinearDamper(double coefficient) {
-    this->coefficient = coefficient;
+LinearDamper::LinearDamper(double dampingRatio) {
+    this->dampingRatio = dampingRatio;
 }
 
-double LinearDamper::getDampingCoef() {
-    return coefficient;
+double LinearDamper::getDampingRatio(double velocity) {
+    return dampingRatio;
 }
 
-void LinearDamper::setDampingCoef(double coefficient) {
-    this->coefficient = coefficient;
+void LinearDamper::setDampingRatio(double dampingRatio) {
+    this->dampingRatio = dampingRatio;
 }
 
-NonLinearDamper::NonLinearDamper(double coefficient) {
-    this->coefficient = coefficient;
+NonLinearDamper::NonLinearDamper(double dampingRatio) {
+    this->dampingRatio = dampingRatio;
 }
 
-double NonLinearDamper::getDampingCoef() {
-    return coefficient;
+double NonLinearDamper::getDampingRatio(double velocity) {
+    //if (velocity>-400 & velocity<400){
+    //    return dampingRatio * 1.5
+   // }
+    return dampingRatio;
 }
 
-void NonLinearDamper::setDampingCoef(double coefficient) {
-    this->coefficient = coefficient;
+void NonLinearDamper::setDampingRatio(double dampingRatio) {
+    this->dampingRatio = dampingRatio;
 }

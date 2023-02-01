@@ -8,44 +8,44 @@
 
 class Road{
 protected:
-    std::vector<double> y_g;
+    std::vector<double> roadLine;
 public:
     virtual std::vector<double> CalcRoad(double t_final, double dt)=0;
 };
 
 class SineRoad : public Road{
 private:
-    double A=0.1;
-    double f_sin=1;
+    double amplitude_=0.1;
+    double frequency_=1;
 
 public:
     SineRoad()=default;
-    SineRoad(double amp, double freq);
+    SineRoad(double amplitude, double frequency);
     std::vector<double> CalcRoad(double t_finalIn, double dtIn) override;    
 };
 
 class SweptSine : public Road{
 private:
-    double A_swp=0.1;
-    double f_start=0.0;
-    double f_end=10.0;
+    double amplitude_=0.1;
+    double frequencyStart=0.0;
+    double frequencyEnd=10.0;
 
 public:
     SweptSine()=default;
-    SweptSine(double Amp, double freq1, double freq2);
-    std::vector<double> CalcRoad(double t_final, double dt) override;
+    SweptSine(double amplitude, double freq1, double freq2);
+    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;
 };
 
 class RampRoad : public Road{
 private:
-    double height=0.1;
-    double inclination=0.3;
+    double height_=0.1;
+    double inclination_=0.3;
 
 public:
     RampRoad()=default;
     RampRoad(double heightIn, double inclinationIn);
 
-    std::vector<double> CalcRoad(double t_final, double dt) override;
+    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;
 };
 
 class FileRoad : public Road{
@@ -53,7 +53,7 @@ private:
     std::vector<double> file_time; 
     std::vector<double> position;
     std::string filename;
-    char filter;
+    char filterOption;
     int windowSize;
     double scaling;
     void FilterMA(); 
@@ -62,6 +62,16 @@ public:
     FileRoad(std::string fileNameIn="signal.csv", char filterIn='y', int windowSizeIn=100, double scalingIn=1.0);
     std::vector<double> CalcRoad(double t_final, double dt) override;      
     
+};
+
+class CurbRoad: public Road{
+private:
+    double height;
+    double numberOfCurbs;
+
+public:
+    CurbRoad(double height);
+    std::vector<double> CalcRoad(double t_final, double dt) override;
 };
 
 #endif

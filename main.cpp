@@ -9,20 +9,33 @@
 
 int main()
 {
-char repeat='y';   
-    while (repeat=='y'){
+char repeat='u';   
+    while (true){
         try
         {               
             ModelBuilder model;
-            model.getParams();
+            if (repeat == 'u'){
+                model.unitsHandler();
+            }
+            model.getVehicleParams();
+            model.getSimParams();
+
             Car car = model.getCar();
-            car.printAttributes();
+            Road* road= model.getRoad();
+            
        
-            Simulation sim;
-            sim.getSimParams();
-            sim.Simulate(car);
+            Simulation sim = model.getSim();
+            //sim.getSimParams();
+
+            sim.Simulate(car, *road);
+            model.printAttributes();
+            
             //sim.Graph();
             repeat = sim.Graph();
+
+            if (repeat != 'y' && repeat != 'u') {
+                break;
+            }
         }
         catch (std::exception &e)
         {

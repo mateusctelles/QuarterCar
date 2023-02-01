@@ -3,54 +3,88 @@
 #include "Car.hpp"
 #include "Damper.hpp"
 #include "Spring.hpp"
+#include "Road.hpp"
+#include "Simulation.hpp"
 #include <string>
 #include <iostream>
 #include <cmath>
 #include <vector>
 
 class ModelBuilder{
+
+friend class Simulation;
+
 private:
     
    // LinearSpring spring;
     //LinearDamper damper;
     
-    Spring* spring_;
-    Damper* damper_;
+    //Spring* spring_;
+    //Damper* damper_;
     Car car_;
+    Simulation sim;
+    Road* road_;
 
     char repeatsim;
     int paramtype;
     char repeatparam;
     int param;
+    std::string roadName_;
 
-    double m_s; 
-    double k_w;
-    double DR; 
-    double m_u; 
-    double k_t;
-    double c_t;
-    double k_stopper;
-    double travel_limit; 
-    double unit=1;
+    int userParam;
 
-    double getStiffnessFromUser(double unit=1);
-    double getSprungMassFromUser(double unit=1);
-    double getUnsprungMassFromUser(double unit=1);
-    double getDampingRatioFromUser();
-    double getTireStiffnessFromUser(double unit=1);
-    double getTireDampingFromUser();
-    double getStopperStiffnessFromUser(double unit=1);
-    double getTravelLimitFromUser(double unit=1);
+    /*int unitType_;
+    double dispUnitScaling_;
+    double massUnitScaling_;
+    double forceUnitScaling_;
+    double stiffnessUnitScaling_ ;
+    double dampingUnitScaling_ ;
+    double gUnitScaling_ = 9810;
 
+    std::string displacementUnit_;
+    std::string stiffnessUnit_;
+    std::string accelerationUnitSI_ =;
+    std::string accelerationUnit = "[G]";
+    std::string massUnit_ = "[Kg]";
+    std::string dampingUnit_ = "[N.s/mm]";
+    std::string forceUnit_ = "[N]";
+    std::string velocityUnit_ = "[mm/s]";
+    std::string gUnit_ = "[G]";*/
+
+    Spring* getStiffnessFromUser();
+    void getSprungMassFromUser();
+    void getUnsprungMassFromUser();
+    Damper* getDampingRatioFromUser();
+    void getTireStiffnessFromUser();
+    void getTireDampingFromUser();
+    void getStopperStiffnessFromUser();
+    void getTravelLimitFromUser();
+    void getStaticHeightFromUser();
+
+    
+    void getSineRoadFromUser();
+    void getCurbRoadFromUser();
+    void getSweptSineRoadFromUser();
+    void getFileRoadFromUser();
+    void getRampRoadFromUser();
+    void setSimTotalTime(double t_final);
+    void setSimStepSize(double dt);
 
 public:
     ModelBuilder()=default;
+    Road* getRoad(){return road_;}
     //~ModelBuilder(); 
-    void getParams();
+    void unitsHandler();
+    //void setModelUnit(double unit){unit_= unit;}
+    //double getModelUnit(){return unit_;}
+    void getVehicleParams();
+    void getSimParams();
     Car getCar() const {return car_;}
+    Simulation getSim(){return sim;}
     void setCarProperties();
-    Spring* getSpring() const;
-    Damper* getDamper() const;
+    void printAttributes();
+    //Spring* getSpring() const;
+    //Damper* getDamper() const;
 
 };
 

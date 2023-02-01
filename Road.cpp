@@ -3,183 +3,242 @@
 #include <fstream>
 #include <sstream>
 
+CurbRoad::CurbRoad(double height) : height(height){}
 
-SineRoad::SineRoad(double amp, double freq): A(amp), f_sin(freq){}
-
-std::vector<double> SineRoad::CalcRoad(double t_final, double dt){
-    std::cout<<"\nCreating Road: Level 1";
-    int numSteps=t_final/dt;
-    std::cout<<"\nGot NumSteps:" << numSteps;
-    
-    y_g.resize(numSteps,0.0);
-    for (int i=0; i<numSteps; i++){
-        y_g[i] = A*std::sin(f_sin*2*M_PI*i*dt);
-    }
-
-    std::cout<<"\ny_g sucessfully resized to the number: " << y_g.size();    
-    return y_g;
-}
-
-
-SweptSine::SweptSine(double Amp, double freq1, double freq2): A_swp(Amp), f_start(freq1),f_end(freq2){}
-
-std::vector<double>SweptSine::CalcRoad(double t_final, double dt){
-    int numSteps=t_final/dt;
-    y_g.resize(numSteps,0.0);
-    for (int i=0; i<numSteps-1; i++){
-        double tswp=i*dt;
-        double fcurr= f_start +(f_end - f_start)*tswp/t_final;
-        double sample = A_swp*sin(2*M_PI*fcurr*tswp);
-        y_g[i] = sample;
-        }
-
-    return y_g;
-}
-
-
-RampRoad::RampRoad(double heightIn, double inclinationIn): height(heightIn), inclination(inclinationIn){}
-
-std::vector<double>RampRoad::CalcRoad(double t_final, double dt){
-    
-    int numSteps=t_final/dt;
-    y_g.resize(numSteps,0.0);
-    for (int i=0; i<numSteps-1; i++){   
-        if (y_g[i] < height){
-            y_g[i+1] = y_g[i] + inclination*dt;
-        }
-        else {
-            y_g[i] = 0;
-        }
-    }
-
-    return y_g;
-}
-
-FileRoad::FileRoad(std::string fileNameIn, char filterIn, int windowSizeIn, double scalingIn) : filename(fileNameIn), filter(filterIn), scaling(scalingIn), windowSize(windowSizeIn)
+std::vector<double> CurbRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
-    std::cout<<"File import input method selected. \n\n";
+    std::cout << "\nCreating CurbRoad: Level 1";
+    std::cout<<"\nHeight defined: "<<height;
+    int numSteps = simulationTime / timeStepSize;
+    double simPart;
+
+    roadLine.resize(numSteps, 0.0);
+    for (int i=0; i<numSteps;i++)
+    {
+        simPart = (double) i/numSteps;
+        if (simPart <=0.25){
+            roadLine[i]=0;
+            std::cout<<"\nCondition 1 met. <0.25 "<<simPart;
+        }
+        else if (simPart >0.25 && simPart<=0.50){
+            roadLine[i]=height;
+            std::cout<<"\nCondition 2 met. 0.25> i <0.5 "<<simPart;
+        }
+        else if (simPart >0.5 && simPart<=0.75){
+            roadLine[i]=0;
+            std::cout<<"\nCondition 3 met. 0.5> i <0.75 "<<simPart;
+        }
+        else if (simPart >0.75 && simPart<=1.00){
+            roadLine[i]=height;
+            std::cout<<"\nCondition 4 met. 0.75> i <1.0 "<<simPart;
+        }   
+    }
+    std::cout<<"\nRoad: Curb Road Calculated!";
+    return roadLine;
+}
+
+SineRoad::SineRoad(double amplitude, double frequency) : amplitude_(amplitude), frequency_(frequency) {}
+
+std::vector<double> SineRoad::CalcRoad(double simulationTime, double timeStepSize)
+{
+    std::cout << "\nCreating Road: Level 1";
+    int numSteps = simulationTime / timeStepSize;
+    std::cout << "\nGot NumSteps:" << numSteps;
+
+    roadLine.resize(numSteps, 0.0);
+    for (int i = 0; i < numSteps; i++)
+    {
+        roadLine[i] = amplitude_ * std::sin(frequency_ * 2 * M_PI * i * timeStepSize);
+    }
+
+    std::cout << "\nroadLine sucessfully resized to the number: " << roadLine.size();
+    return roadLine;
+}
+
+SweptSine::SweptSine(double amplitude, double freq1, double freq2) : amplitude_(amplitude), frequencyStart(freq1), frequencyEnd(freq2) {}
+
+std::vector<double> SweptSine::CalcRoad(double simulationTime, double timeStepSize)
+{
+    std::cout << "\nCalculating SweptSine Road with the frequency range between "<<frequencyStart <<" - "<< frequencyEnd<< std::endl;
+    int numSteps = simulationTime / timeStepSize;
+    roadLine.resize(numSteps, 0.0);
+    for (int i = 0; i < numSteps - 1; i++)
+    {
+        double time = i * timeStepSize;
+        double fcurr = frequencyStart + (frequencyEnd - frequencyStart) * time / simulationTime;
+        double sample = amplitude_ * sin(2 *M_PI * fcurr * time);
+        roadLine[i] = sample;
+    }
+
+    return roadLine;
+}
+
+RampRoad::RampRoad(double heightIn, double inclinationIn) : height_(heightIn), inclination_(inclinationIn) {}
+
+std::vector<double> RampRoad::CalcRoad(double t_final, double dt)
+{
+
+    int numSteps = t_final / dt;
+    roadLine.resize(numSteps, 0.0);
+    for (int i = 0; i < numSteps - 1; i++)
+    {
+        if (roadLine[i] < height_)
+        {
+            roadLine[i + 1] = roadLine[i] + inclination_*height_ * dt;
+            //std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+        }
+        else
+        {
+            roadLine[i+1] = height_;
+           // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+        }
+    }
+
+    return roadLine;
+}
+
+FileRoad::FileRoad(std::string fileNameIn, char filterOptionIn, int windowSizeIn, double scalingIn) : filename(fileNameIn), filterOption(filterOptionIn), scaling(scalingIn), windowSize(windowSizeIn)
+{
+    std::cout << "File import input method selected. \n\n";
     std::string line;
-    //std::vector<double> y_g(numSteps, 0.0);
+    // std::vector<double> roadLine(numSteps, 0.0);
 
     std::fstream myFile;
-    myFile.open(filename, std::ios::in); //read
-    if (myFile.is_open()) {
-        std::cout<<"Parsing data from file . . .\n";
+    myFile.open(filename, std::ios::in); // read
+    if (myFile.is_open())
+    {
+        std::cout << "Parsing data from file . . .\n";
         std::string line;
 
-        while(std::getline(myFile, line)) {
-            //std::cout<<line<<std::endl;
+        while (std::getline(myFile, line))
+        {
+            // std::cout<<line<<std::endl;
             std::stringstream ss(line);
             std::string field;
-            
-            /* Uses the getline function to read the first field from the ss stringstream, up to the first comma. 
+
+            /* Uses the getline function to read the first field from the ss stringstream, up to the first comma.
             This reads the time value from the line string.*/
-            std::getline(ss,field,',');
-            
+            std::getline(ss, field, ',');
+
             // Converts the time field to a double and store it in the time vector
             file_time.push_back(std::stod(field));
-            
+
             // Reads the position field and store it in the position vector
             std::getline(ss, field, ',');
             position.push_back(std::stod(field));
-            }
-        myFile.close();	
+        }
+        myFile.close();
     }
-    else {
-        std::cout << "File could not be opened!\n\n\n" << std::endl;
+    else
+    {
+        std::cout << "File could not be opened!\n\n\n"
+                  << std::endl;
         throw std::runtime_error("ERROR: File could not be opened!\n\n\n");
     }
 }
 
-void FileRoad::FilterMA(){
-        std::cout<<"Performing Moving Average filtering with window size of "<<windowSize<<". . .\n";
-        std::vector<double> filteredSignal(position.size());
-        //Initialize the running sum with the first window
-        double runningSum=0;
-        for (int i=0; i< windowSize; i++){
-            runningSum+=position[i];				
-        }
-        for (int i=0; i<position.size(); i++){
-            //Update the running sum 
-            runningSum+= position[i + windowSize] - position[i];
-            
-            //Store the average value in the filtered signal
-            filteredSignal[i] = runningSum/windowSize;
-        }
-        
-        for(int i = 0; i<position.size(); i++){
-            position[i]=filteredSignal[i];
-        }
-        std::cout<<"Signal Filtered Sucessfully\n\n";
+void FileRoad::FilterMA()
+{
+    std::cout << "Performing Moving Average filtering with window size of " << windowSize << ". . .\n";
+    std::vector<double> filteredSignal(position.size());
+    // Initialize the running sum with the first window
+    double runningSum = 0;
+    for (int i = 0; i < windowSize; i++)
+    {
+        runningSum += position[i];
+    }
+    for (int i = 0; i < position.size(); i++)
+    {
+        // Update the running sum
+        runningSum += position[i + windowSize] - position[i];
+
+        // Store the average value in the filtered signal
+        filteredSignal[i] = runningSum / windowSize;
+    }
+
+    for (int i = 0; i < position.size(); i++)
+    {
+        position[i] = filteredSignal[i];
+    }
+    std::cout << "Signal Filtered Sucessfully\n\n";
 }
 
-std::vector<double>FileRoad::CalcRoad(double t_final, double dt){
-    int numSteps=t_final/dt;
-    y_g.resize(numSteps,0.0);
+std::vector<double> FileRoad::CalcRoad(double t_final, double dt)
+{
+    int numSteps = t_final / dt;
+    roadLine.resize(numSteps, 0.0);
     double original_stepsize = file_time[2] - file_time[1];
     std::vector<double> rsmp_time(numSteps, 0.0);
     int file_nsamples = file_time.size();
 
     double last_ftime = file_time.back();
-    if (last_ftime>=t_final){
-        std::cout<<"\nParsing finished.\nThe original signal has "<<last_ftime<<" seconds and " <<file_nsamples<< " samples.\n" << std::endl;
+    if (last_ftime >= t_final)
+    {
+        std::cout << "\nParsing finished.\nThe original signal has " << last_ftime << " seconds and " << file_nsamples << " samples.\n"
+                  << std::endl;
     }
-    else {
+    else
+    {
         throw std::runtime_error("ERROR: The simulation time is longer than the time signal. This is currently not supported.\n\n\n");
     }
-    for (int i=0;i<file_nsamples;i++){
-        //std::cout <<"Time: "<< file_time[i] << "; Position: "<< position[i] << std::endl;
+    for (int i = 0; i < file_nsamples; i++)
+    {
+        // std::cout <<"Time: "<< file_time[i] << "; Position: "<< position[i] << std::endl;
     }
 
-    //Cutting the imported time signal to fit the used-defined simulation
-    std::cout<<"Matching file signal size with used-defined simulation time\n\n";
+    // Cutting the imported time signal to fit the used-defined simulation
+    std::cout << "Matching file signal size with used-defined simulation time\n\n";
     double total_ftime = 0;
-    while(total_ftime<t_final){
+    while (total_ftime < t_final)
+    {
         total_ftime = total_ftime + original_stepsize;
-        //std::cout<<"total_ftime = "<<total_ftime << "; t_final = "<<t_final<<std::endl;
+        // std::cout<<"total_ftime = "<<total_ftime << "; t_final = "<<t_final<<std::endl;
     }
-    double file_nsamples_cut = total_ftime/original_stepsize;
- //Applying moving average filter
-  
-    if (filter == 'y'){ 
+    double file_nsamples_cut = total_ftime / original_stepsize;
+    // Applying moving average filter
+
+    if (filterOption == 'y')
+    {
         FilterMA();
     }
+    
+    // Resampling and scaling the signal
+    std::cout << "Resampling signal . . ." << std::endl;
+    std::cout << "The first " << total_ftime << " seconds of the imported signal will be used." << std::endl;
+    std::cout << "The number of samples used before the resample is: " << file_nsamples_cut << std::endl;
 
-    //Resample the signal
-    std::cout<<"Resampling signal . . ."<<std::endl;
-    std::cout<<"The first "<<total_ftime<<" seconds of the imported signal will be used."<<std::endl;
-    std::cout<<"The number of samples used before the resample is: "<< file_nsamples_cut<<std::endl;
-    
-    for (int i = 0; i<numSteps;i++){
-        int factor = std::round(file_nsamples_cut/numSteps);
-        int interval=i*factor;
-        y_g[i] = position[interval];
-        rsmp_time[i] = file_time[i*factor];
-        //std::cout <<"Resampled Time: "<< rsmp_time[i] << "; Resampled Position: "<< y_g[i] <<". Iteration "<< i<< std::endl;
+    for (int i = 0; i < numSteps; i++)
+    {
+        int factor = std::round(file_nsamples_cut / numSteps);
+        int interval = i * factor;
+        roadLine[i] = position[interval]*scaling;
+        rsmp_time[i] = file_time[i * factor];
+        // std::cout <<"Resampled Time: "<< rsmp_time[i] << "; Resampled Position: "<< roadLine[i] <<". Iteration "<< i<< std::endl;
     }
-    
+
     double resampled_stepsize = rsmp_time[2] - rsmp_time[1];
-    
-    std::cout<<"\n################################################################### \n\n";
-    std::cout<<"The input signal was resampled to fit used-defined Step Size of "<<dt<<"."<<std::endl;
-    std::cout<<"The original vector size was "<< position.size() <<", and now is " << y_g.size() << std::endl;
-    std::cout<<"The original step size was "<< original_stepsize<< ", and the step size is now "<< resampled_stepsize << ".\n\n\n" << std::endl; 
-     
-    //Exporting resampled signal to a new .csv file
+
+    std::cout << "\n################################################################### \n\n";
+    std::cout << "The input signal was resampled to fit used-defined Step Size of " << dt << "." << std::endl;
+    std::cout << "The original vector size was " << position.size() << ", and now is " << roadLine.size() << std::endl;
+    std::cout << "The original step size was " << original_stepsize << ", and the step size is now " << resampled_stepsize << ".\n\n\n"
+              << std::endl;
+
+    // Exporting resampled signal to a new .csv file
     std::ofstream file("resampled_signal.csv");
-    if(!file.is_open()){
-        std::cout<<"Error opening output .csv file"<< std::endl;
+    if (!file.is_open())
+    {
+        std::cout << "Error opening output .csv file" << std::endl;
         throw std::runtime_error("Could not open .csv file");
     }
-    
-    for (int i=0; i<y_g.size(); i++){
-        file <<y_g[i]<< ","<<rsmp_time[i] << std::endl;
+
+    for (int i = 0; i < roadLine.size(); i++)
+    {
+        file << roadLine[i] << "," << rsmp_time[i] << std::endl;
     }
-    
+
     file.close();
-    std::cout<<"Resampled signal exported to >>resampled_signal.csv<<\n\n\n";
-    
-    return y_g;
+    std::cout << "Resampled signal exported to >>resampled_signal.csv<<\n\n\n";
 
+    return roadLine;
 }
-
