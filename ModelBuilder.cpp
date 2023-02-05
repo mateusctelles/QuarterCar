@@ -99,12 +99,13 @@ void ModelBuilder::printAttributes()
     std::cout << "Suspension Stiffness: " << car_.getSpring()->getStiffness(0);
 
     std::cout << "\nSuspension Damping Ratio: " << car_.getDamper()->getDampingRatio(0) << " | Damping Coefficient: " << car_.CalcSuspDamp(0) / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
-    std::cout << "\nSuspension Travel Limit: " << car_.getMaxBumpTravel() / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
-    std::cout << "\nSprung Mass Height to the Tire: " << car_.getStaticHeight() / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
-    std::cout << "\nBumpstop Stiffness: " << car_.getBumpStopStiffness() / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
-    //std::cout << "\nRebound Stop Stiffness: " << car_.getReboundStopStiffness() / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
-    std::cout << "\nTire Vertical Stiffness: " << car_.getTireStiffness() / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
-    std::cout << "\nTire Damping: " << car_.getTireDamping() / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
+    //std::cout << "\nSuspension Available Jounce Travel: " << (car_.getSpring()->getFreeLength() - sim.getSuspSpringDeflection()) / -sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
+    //std::cout << "\nSuspension Available Rebound Travel: " << (sim.getSprungMassDeflection()-sim.getTireSpringDeflection()) / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
+    //std::cout << "\nSprung Mass Height to the Tire: " << car_.getStaticHeight() / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
+    std::cout << "\nBumpstop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0) / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
+    // std::cout << "\nRebound Stop Stiffness: " << car_.getReboundStopStiffness() / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
+    std::cout << "\nTire Vertical Stiffness: " << car_.getTireSpring()->getStiffness(0) / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
+    std::cout << "\nTire Damping: " << car_.getTireDamper()->getDampingCoefficient() / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
     std::cout << "\nSprung Mass: " << car_.getSprungMass() / sim.getMassUnitScaling() << " " << sim.getMassUnit();
     std::cout << "\nUnsprung Mass: " << car_.getUnsprungMass() / sim.getMassUnitScaling() << " " << sim.getMassUnit();
     std::cout << "\nRide Frequency: " << car_.CalcRideFreq() << " [Hz]";
@@ -128,6 +129,48 @@ void ModelBuilder::getUnsprungMassFromUser()
     car_.setUnsprungMass(unsprungMass * sim.getMassUnitScaling());
 }
 
+Spring *ModelBuilder::getTireStiffnessFromUser()
+{
+    double stiffness;
+    double height;
+    //~delete TireSpring
+    Spring *tireSpring_ = new TireSpring;
+    std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
+    std::cin >> stiffness;
+    tireSpring_->setStiffness(stiffness * sim.getStiffnessUnitScaling());
+    std::cout << "\nEnter the Tire Sidewall Height " << sim.getDisplacementUnit() << ": ";
+    std::cin >> height;
+    tireSpring_->setFreeLength(height * sim.getStiffnessUnitScaling());
+    car_.setTireSpring(tireSpring_);
+    std::cout << "Car received Tire Stiffness: \n"
+              << car_.getTireSpring()->getStiffness(0) << std::endl;
+    std::cout << "Car received Tire Sidewall Height: \n"
+              << car_.getTireSpring()->getFreeLength() << std::endl;
+    return tireSpring_;
+}
+
+void ModelBuilder::getBumpStopStiffnessFromUser()
+{
+    double kStopper;
+    Spring *bumpStopSpring = new BumpStopSpring;
+    std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
+    std::cin >> kStopper;
+    bumpStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
+    car_.setBumpStopSpring(bumpStopSpring);
+    std::cout << "\nCar received Bump stop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0);
+}
+
+void ModelBuilder::getReboundStopStiffnessFromUser()
+{
+    double kStopper;
+    Spring *reboundStopSpring = new ReboundStopSpring;
+    std::cout << "\nEnter the Rebound Stop Stiffness " << sim.getStiffnessUnit() << ": ";
+    std::cin >> kStopper;
+    reboundStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
+    car_.setReboundStopSpring(reboundStopSpring);
+    std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
+}
+
 Spring *ModelBuilder::getStiffnessFromUser()
 {
     Spring *spring_;
@@ -145,11 +188,17 @@ Spring *ModelBuilder::getStiffnessFromUser()
         if (springType == 'L')
         {
             double stiffness;
+            double length;
             spring_ = new LinearSpring; // Creates instance of LinearSpring at Runtime.
-            std::cout << "Enter the suspension stiffness value " << sim.getStiffnessUnit() << ": ";
+            std::cout << "Enter the suspension spring stiffness value " << sim.getStiffnessUnit() << ": ";
             std::cin >> stiffness;
             spring_->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-            std::cout << "\nCar received stiffness: " << spring_->getStiffness(0);
+            std::cout << "Enter the spring free length value: " << sim.getDisplacementUnit() << ": ";
+            std::cin >> length;
+            spring_->setFreeLength(length * sim.getDisplacementUnitScaling());
+            car_.setSpring(spring_);
+            std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
+            std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
             return spring_;
         }
 
@@ -169,6 +218,18 @@ Spring *ModelBuilder::getStiffnessFromUser()
             return nullptr;
         }
     }
+}
+
+Damper* ModelBuilder::getTireDampingFromUser()
+{
+    Damper* tireDamper;
+    tireDamper = new LinearDamper;
+    double cTire;
+    std::cout << "\nEnter the Tire Damping " << sim.getDampingUnit() << ": ";
+    std::cin >> cTire;
+    tireDamper->setDampingCoefficient(cTire*sim.getDampingUnitScaling());
+    car_.setTireDamper(tireDamper);
+    return tireDamper;
 }
 
 Damper *ModelBuilder::getDampingRatioFromUser()
@@ -191,6 +252,7 @@ Damper *ModelBuilder::getDampingRatioFromUser()
             std::cout << "Enter the Damping Ratio: ";
             std::cin >> dampingRatio;
             damper_->setDampingRatio(dampingRatio);
+            car_.setDamper(damper_);
             return damper_;
         }
 
@@ -201,6 +263,7 @@ Damper *ModelBuilder::getDampingRatioFromUser()
             std::cout << "Enter the NonLinear Damping Ratio: ";
             std::cin >> dampingRatio;
             damper_->setDampingRatio(dampingRatio);
+            car_.setDamper(damper_);
             return damper_;
         }
 
@@ -212,14 +275,14 @@ Damper *ModelBuilder::getDampingRatioFromUser()
     }
 }
 
-void ModelBuilder::getTravelLimitFromUser()
+/*void ModelBuilder::getTravelLimitFromUser()
 {
     double travelLimit;
     std::cout << "\nEnter the travel limit " << sim.getDisplacementUnit() << ": ";
     std::cin >> travelLimit;
     car_.setMaxTravel(travelLimit * sim.getDisplacementUnitScaling());
     //std::cout << "\nCar received Max Travel: " << car_.getMaxBumpTravel() << std::endl;
-}
+}*/
 
 void ModelBuilder::getStaticHeightFromUser()
 {
@@ -229,31 +292,7 @@ void ModelBuilder::getStaticHeightFromUser()
     car_.setStaticHeight(staticHeight * sim.getDisplacementUnitScaling());
 }
 
-void ModelBuilder::getStopperStiffnessFromUser()
-{
-    double kStopper;
-    std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
-    std::cin >> kStopper;
-    car_.setKBumpstop(kStopper * sim.getStiffnessUnitScaling());
-    //std::cout << "\nCar received Bumpstop Stiffness: " << car_.getBumpStopStiffness();
-}
 
-void ModelBuilder::getTireStiffnessFromUser()
-{
-    double kTire;
-    std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
-    std::cin >> kTire;
-    car_.setTireStiffness(kTire * sim.getStiffnessUnitScaling());
-    //std::cout << "\nCar received Tire Stiffness: " << car_.getTireStiffness() << std::endl;
-}
-
-void ModelBuilder::getTireDampingFromUser()
-{
-    double cTire;
-    std::cout << "\nEnter the Tire Damping " << sim.getDampingUnit() << ": ";
-    std::cin >> cTire;
-    car_.setTireDamping(cTire * sim.getDampingUnitScaling());
-}
 
 void ModelBuilder::getVehicleParams()
 {
@@ -284,25 +323,22 @@ void ModelBuilder::getVehicleParams()
             // Define the vehicle quarter sprung mass
             getSprungMassFromUser();
 
-            // Define the suspension stiffness
-            car_.setSpring(getStiffnessFromUser());
+            // Define the suspension stiffness and the spring free length
+            getStiffnessFromUser();
 
             // Define the Suspension Damping Ratio;
-            car_.setDamper(getDampingRatioFromUser());
-
-            // Define the suspension travel until bumpstop
-            getTravelLimitFromUser();
-
-            //Define the Sprung mass height to the tire
-            getStaticHeightFromUser();
+            getDampingRatioFromUser();
 
             // Define bumpstop stiffness
-            getStopperStiffnessFromUser();
+            getBumpStopStiffnessFromUser();
+            
+            // Define bumpstop stiffness
+            getReboundStopStiffnessFromUser();
 
             // Define the vehicle quarter sprung mass
             getUnsprungMassFromUser();
 
-            // Define the Tire Vertical Stiffness
+            // Define the Tire Vertical Stiffness and SideWall Height
             getTireStiffnessFromUser();
 
             // Define the Tire Damping
@@ -318,13 +354,15 @@ void ModelBuilder::getVehicleParams()
 
                 std::cout << "\nWhich parameter you wish to change? \n\n";
                 std::cout << "(1) Sprung Mass " << sim.getMassUnit();
-                std::cout << "\n(2) Suspension Stiffness " << sim.getStiffnessUnit();
+                std::cout << "\n(2) Suspension Stiffness and Spring Free Length " << sim.getStiffnessUnit();
                 std::cout << "\n(3) Suspension Damping Ratio " << sim.getDampingUnit();
-                std::cout << "\n(4) Suspension Travel Limit " << sim.getDisplacementUnit();
-                std::cout << "\n(5) Sprung Mass Static Height to the Tire " << sim.getDisplacementUnit();
-                std::cout << "\n(6) Bumpstop Stiffness " << sim.getStiffnessUnit();
-                std::cout << "\n(7) Unsprung Mass " << sim.getMassUnit();
-                std::cout << "\n(8) Tire Vertical Stiffness " << sim.getStiffnessUnit();
+                // std::cout << "\n(4) Suspension Travel Limit " << sim.getDisplacementUnit();
+                // std::cout << "\n(5) Sprung Mass Static Height to the Tire " << sim.getDisplacementUnit();
+                std::cout << "\n(4) Bumpstop Stiffness " << sim.getStiffnessUnit();
+                std::cout << "\n(5) Rebound Stop Stiffness " << sim.getStiffnessUnit();
+                std::cout << "\n(6) Unsprung Mass " << sim.getMassUnit();
+                std::cout << "\n(7) Tire Vertical Stiffness and Sidewall Height" << sim.getStiffnessUnit();
+                std::cout<< "\n(8) Tire Vertical Damping: "<< sim.getDampingUnit();
 
                 std::cout << "\nSelection: ";
                 std::cin >> param;
@@ -337,31 +375,30 @@ void ModelBuilder::getVehicleParams()
                     break;
 
                 case 2:
-                    car_.setSpring(getStiffnessFromUser());
+                    getStiffnessFromUser();
                     break;
 
                 case 3:
-                    car_.setDamper(getDampingRatioFromUser());
+                    getDampingRatioFromUser();
                     break;
 
                 case 4:
-                    getTravelLimitFromUser();
+                    getBumpStopStiffnessFromUser();
                     break;
 
                 case 5:
-                    getStaticHeightFromUser();
+                    getReboundStopStiffnessFromUser();
                     break;
 
                 case 6:
-                    getStopperStiffnessFromUser();
-                    break;
-
-                case 7:
                     getUnsprungMassFromUser();
                     break;
 
-                case 8:
+                case 7:
                     getTireStiffnessFromUser();
+                    break;
+                case 8:
+                    getTireDampingFromUser();
                     break;
                 }
 
@@ -379,9 +416,9 @@ void ModelBuilder::getVehicleParams()
             car_.setDamper(getDampingRatioFromUser());
             car_.setUnsprungMass(20 * sim.getMassUnitScaling());
             car_.setTireDamping(0);
-            car_.setKBumpstop(1000 * sim.getStiffnessUnitScaling());
-            car_.setMaxTravel(100 * sim.getDisplacementUnitScaling());
-            car_.setTireStiffness(90 * sim.getStiffnessUnitScaling());
+            // car_.setKBumpstop(1000 * sim.getStiffnessUnitScaling());
+            //  car_.setMaxTravel(100 * sim.getDisplacementUnitScaling());
+            // car_.setTireStiffness(90 * sim.getStiffnessUnitScaling());
         }
 
         // car_.setSpring(spring_);
@@ -406,8 +443,8 @@ void ModelBuilder::getSineRoadFromUser()
 void ModelBuilder::getCurbRoadFromUser()
 {
     double height;
-    std::cout<<"\nCurb road input method selected.";
-    std::cout<<"\nDefine Curb Height " << sim.getDisplacementUnit() << ": ";
+    std::cout << "\nCurb road input method selected.";
+    std::cout << "\nDefine Curb Height " << sim.getDisplacementUnit() << ": ";
     std::cin >> height;
     road_ = new CurbRoad(height);
 }

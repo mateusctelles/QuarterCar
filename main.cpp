@@ -9,12 +9,12 @@
 
 int main()
 {
-char repeat='u';   
+int repeat=3;   
     while (true){
         try
         {               
             ModelBuilder model;
-            if (repeat == 'u'){
+            if (repeat == 3){
                 model.unitsHandler();
             }
             model.getVehicleParams();
@@ -23,13 +23,15 @@ char repeat='u';
             Car car = model.getCar();
             Road* road= model.getRoad();     
             Simulation sim = model.getSim();
+            model.printAttributes();
 
+            //sim.StaticEquilibrium(car);
             sim.Simulate(car, *road);
             model.printAttributes();
             
             repeat = sim.Graph();
 
-            if (repeat != 'y' && repeat != 'u') {
+            if (repeat != 1 && repeat != 3) {
                 break;
             }
         }

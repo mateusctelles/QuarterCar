@@ -55,11 +55,13 @@ private:
     void getSprungMassFromUser();
     void getUnsprungMassFromUser();
     Damper* getDampingRatioFromUser();
-    void getTireStiffnessFromUser();
-    void getTireDampingFromUser();
-    void getStopperStiffnessFromUser();
+    Spring* getTireStiffnessFromUser();
+    Damper* getTireDampingFromUser();
+    void getBumpStopStiffnessFromUser();
+    void getReboundStopStiffnessFromUser();
     void getTravelLimitFromUser();
     void getStaticHeightFromUser();
+    void getSpringLengthFromUser();
 
     
     void getSineRoadFromUser();

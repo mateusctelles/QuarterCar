@@ -17,19 +17,19 @@ std::vector<double> CurbRoad::CalcRoad(double simulationTime, double timeStepSiz
         simPart = (double) i/numSteps;
         if (simPart <=0.25){
             roadLine[i]=0;
-            std::cout<<"\nCondition 1 met. <0.25 "<<simPart;
+            //std::cout<<"\nCondition 1 met. <0.25 "<<simPart;
         }
         else if (simPart >0.25 && simPart<=0.50){
             roadLine[i]=height;
-            std::cout<<"\nCondition 2 met. 0.25> i <0.5 "<<simPart;
+           // std::cout<<"\nCondition 2 met. 0.25> i <0.5 "<<simPart;
         }
         else if (simPart >0.5 && simPart<=0.75){
             roadLine[i]=0;
-            std::cout<<"\nCondition 3 met. 0.5> i <0.75 "<<simPart;
+           // std::cout<<"\nCondition 3 met. 0.5> i <0.75 "<<simPart;
         }
         else if (simPart >0.75 && simPart<=1.00){
             roadLine[i]=height;
-            std::cout<<"\nCondition 4 met. 0.75> i <1.0 "<<simPart;
+            //std::cout<<"\nCondition 4 met. 0.75> i <1.0 "<<simPart;
         }   
     }
     std::cout<<"\nRoad: Curb Road Calculated!";

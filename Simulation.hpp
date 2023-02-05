@@ -6,6 +6,10 @@
 #include <iostream>
 #include "Car.hpp"
 #include "Road.hpp"
+#include "Spring.hpp"
+#include <fstream>
+#include <sstream>
+#include <cstdlib>
 
 class Simulation
 {
@@ -23,17 +27,46 @@ private:
     std::vector<double> sprungMassVelocity;
     std::vector<double> sprungMassDisplacement;
 
+    double unsprungMassWeight;
+    double sprungMassWeight;
+    double gravity = 9.81;
+    double sprungMassDeflection_;
+    double unsprungMassDeflection_;
+    double sprungMassInitialPosition;
+    double unsprungMassInitialPosition;
+    double suspSpringDeflection_;
+    double tireSpringDeflection_;
+    //double tireSpringDeflection;
+
     std::vector<double> roadLine;
     std::vector<double> roadLineVelocity;
+    std::vector<double> roadLineAcceleration;
     std::vector<double> sprungMassPosition;
     std::vector<double> unsprungMassPosition;
     std::vector<double> relativeDisplacementVector;
-
+    std::vector<double> relativeTireDisplacementVector;
+    std::vector<double> sprungMassNetForce;
+    std::vector<double> unsprungMassNetForce;
     std::vector<double> bumpStopForce;
+    std::vector<double> reboundStopForce;
+    std::vector<double> stopperForce;
     std::vector<double> springForce;
     std::vector<double> damperForce;
     std::vector<double> tireElasticForce;
     std::vector<double> tireDamperForce;
+    std::vector<double> tireDefLimit;
+    std::vector<double> springBumpLimit;
+    std::vector<double> springReboundLimit;
+    std::vector<double> bumpStopStiffness;
+    std::vector<double> reboundStopStiffness;
+    std::vector<double> displacementAttenuation;
+    std::vector<double> accelerationAttenuation;
+    std::vector<double> sprungMassDisplacementRMS;
+    std::vector<double> sprungMassAccelerationRMS;
+    std::vector<double> roadLineDisplacementRMS;
+    std::vector<double> roadLineAccelerationRMS;
+    std::vector<double> displacementRMSRatio;
+    std::vector<double> accelerationRMSRatio;
 
     double displacementUnitScaling_;
     double stiffnessUnitScaling_;
@@ -67,6 +100,10 @@ public:
     double getGUnitScaling(){return gUnitScaling_;}
     double getDampingUnitScaling(){return dampingUnitScaling_;}
 
+    double getSuspSpringDeflection(){return suspSpringDeflection_;}
+    double getTireSpringDeflection(){return tireSpringDeflection_;}
+    double getSprungMassDeflection(){return sprungMassDeflection_;}
+
     std::string getDisplacementUnit(){return displacementUnit_;}
     std::string getStiffnessUnit(){return stiffnessUnit_;}
     std::string getMassUnit(){return massUnit_;}
@@ -93,8 +130,10 @@ public:
 
     void Simulate(Car &car, Road &road);
     void StaticEquilibrium(Car &car);
+    std::vector<double> CalculateRMS(std::vector<double> &signal);
+    std::vector<double> CalculateSignalRatio(std::vector<double> &inputSignal, std::vector<double> &outputSignal);
 
-    char Graph();
+    int Graph();
 };
 
 #endif
