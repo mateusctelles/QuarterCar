@@ -12,11 +12,11 @@ private:
     // Suspension
     //Spring* spring; // Suspension Stiffness
     std::unique_ptr<Spring> spring;
-    Spring* tireSpring ;
-    Spring* reboundStopSpring;
-    Damper* damper; // Suspension Damping
-    Damper* tireDamper ;
-    Spring* bumpStopSpring;
+    std::unique_ptr<Spring> tireSpring ;
+    std::unique_ptr<Spring> reboundStopSpring;
+    std::unique_ptr<Damper> damper; // Suspension Damping
+    std::unique_ptr<Damper> tireDamper ;
+    std::unique_ptr<Spring> bumpStopSpring;
     double dampingRatio_;
     double bumpStopStiffness_;    // Bumpstop Stiffness
     double reboundStopStiffness_; // Rebound Stop Stiffness
@@ -38,11 +38,11 @@ public:
     Car() =default;
     // Getters
     inline Spring* getSpring() { return spring.get(); }
-    inline Spring* getTireSpring(){ return tireSpring; }
-    inline Spring* getBumpStopSpring(){ return bumpStopSpring;}
-    inline Spring* getReboundStopSpring(){ return reboundStopSpring;}
-    inline Damper* getDamper() { return damper; }
-    inline Damper* getTireDamper(){ return tireDamper;}
+    inline Spring* getTireSpring(){ return tireSpring.get(); }
+    inline Spring* getBumpStopSpring(){ return bumpStopSpring.get();}
+    inline Spring* getReboundStopSpring(){ return reboundStopSpring.get();}
+    inline Damper* getDamper() { return damper.get(); }
+    inline Damper* getTireDamper(){ return tireDamper.get();}
     inline double getDampingRatio() { return dampingRatio_; }
     inline double getStaticHeight(){return staticHeight_;}
     inline double getTireStaticHeight(){ return tireStaticHeight;}
@@ -64,12 +64,12 @@ public:
     inline void setSprungMass(double sprungMass) { sprungMass_ = sprungMass; }
     inline void setUnsprungMass(double unsprungMass) { unsprungMass_ = unsprungMass; }
     
-    inline void setTireDamper(Damper* tireDamper){this->tireDamper = tireDamper;};
+    inline void setTireDamper(std::unique_ptr<Damper>tireDamper){this->tireDamper = std::move(tireDamper);};
     void setSpring(std::unique_ptr<Spring> spring);
-    void setDamper(Damper *damper);
-    void setTireSpring(Spring *tireSpring);
-    void setBumpStopSpring(Spring *bumpStopSpring){this->bumpStopSpring = bumpStopSpring;};
-    void setReboundStopSpring(Spring *reboundStopSpring){this->reboundStopSpring = reboundStopSpring;};
+    void setDamper(std::unique_ptr<Damper> damper){this->damper = std::move(damper);}
+    void setTireSpring(std::unique_ptr<Spring> tireSpring){this->tireSpring = std::move(tireSpring);};;
+    void setBumpStopSpring(std::unique_ptr<Spring>  bumpStopSpring){this->bumpStopSpring = std::move(bumpStopSpring);};
+    void setReboundStopSpring(std::unique_ptr<Spring> reboundStopSpring){this->reboundStopSpring = std::move(reboundStopSpring);}
 
     double CalcRideFreq();
     double CalcSprungNatFreq();

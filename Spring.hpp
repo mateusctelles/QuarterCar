@@ -61,7 +61,7 @@ public:
     double getStiffness(double relativeDisplacement);
     double getFreeLength(){return freeLength;}
     double getTriggerDistance(){return triggerDistance;}
-    void setTriggerDistance(double TriggerDistance) {this->triggerDistance = triggerDistance;}
+    void setTriggerDistance(double triggerDistance) {this->triggerDistance = triggerDistance;}
     void setStiffness(double stiffness) {this->stiffness = stiffness;}
     void setFreeLength(double length)  {freeLength = length;}
 };

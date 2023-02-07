@@ -138,14 +138,14 @@ void ModelBuilder::getTireStiffnessFromUser()
     double stiffness;
     double height;
     //~delete TireSpring
-    Spring *tireSpring = new LinearContactSpring;
+    std::unique_ptr<Spring>tireSpring = std::make_unique<LinearContactSpring>();
     std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> stiffness;
     tireSpring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
     std::cout << "\nEnter the Tire Sidewall Height " << sim.getDisplacementUnit() << ": ";
     std::cin >> height;
     tireSpring->setFreeLength(height * sim.getStiffnessUnitScaling());
-    car_.setTireSpring(tireSpring);
+    car_.setTireSpring(std::move(tireSpring));
     std::cout << "Car received Tire Stiffness: \n"
               << car_.getTireSpring()->getStiffness(0) << std::endl;
     std::cout << "Car received Tire Sidewall Height: \n"
@@ -163,43 +163,28 @@ void ModelBuilder::getBumpStopStiffnessFromUser()
         oldBumpStopSpring = nullptr;
     }*/
     double kStopper;
-    Spring *bumpStopSpring = new LinearContactSpring;
+    std::unique_ptr<Spring> bumpStopSpring = std::make_unique<LinearContactSpring>();
     std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> kStopper;
     bumpStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
-    car_.setBumpStopSpring(bumpStopSpring);
+    car_.setBumpStopSpring(std::move(bumpStopSpring));
     std::cout << "\nCar received Bump stop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0);
 }
 
 void ModelBuilder::getReboundStopStiffnessFromUser()
 {
     double kStopper; 
-    /*Spring* oldReboundStopSpring = car_.getReboundStopSpring();
-    if(oldReboundStopSpring != nullptr){
-         std::cout<<"oldBumpStopSpring is not nullptr";
-         delete oldReboundStopSpring;
-         oldReboundStopSpring = nullptr;
-    }*/
-
-    Spring *reboundStopSpring = new LinearContactSpring;
+    std::unique_ptr<Spring> reboundStopSpring = std::make_unique<LinearContactSpring>();
     std::cout << "\nEnter the Rebound Stop Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> kStopper;
     reboundStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
-    car_.setReboundStopSpring(reboundStopSpring);
+    car_.setReboundStopSpring(std::move(reboundStopSpring));
     std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
     // delete reboundStopSpring;
 }
 
 void ModelBuilder::getStiffnessFromUser()
 {
-    /**Spring *oldSpring = car_.getSpring();
-    if (oldSpring != nullptr)
-    {
-        std::cout << "oldSpring is not nullptr";
-        delete oldSpring;
-        oldSpring = nullptr;
-    }*/
-
     //Spring *spring;
     std::unique_ptr<Spring> spring;
     char springType;
@@ -243,22 +228,14 @@ void ModelBuilder::getStiffnessFromUser()
 
 void ModelBuilder::getTireDampingFromUser()
 {
-    /*Damper *oldTireDamper = car_.getTireDamper();
-    if (oldTireDamper != nullptr)
-    {
-        std::cout << "getTireDamper is not nullptr";
-        delete oldTireDamper;
-        oldTireDamper = nullptr;
-    }*/
-
-    Damper *tireDamper;
-    tireDamper = new LinearDamper;
+    std::unique_ptr<Damper>tireDamper;
+    tireDamper = std::make_unique<LinearDamper>();
     double cTire;
     std::cout << "\nEnter the Tire Damping " << sim.getDampingUnit() << ": ";
     std::cin >> cTire;
 
     tireDamper->setDampingCoefficient(cTire * sim.getDampingUnitScaling());
-    car_.setTireDamper(tireDamper);
+    car_.setTireDamper(std::move(tireDamper));
 }
 
 void ModelBuilder::getDampingRatioFromUser()
@@ -270,7 +247,7 @@ void ModelBuilder::getDampingRatioFromUser()
         oldDamper = nullptr;
     }*/
 
-    Damper *damper;
+    std::unique_ptr<Damper>damper;
     char damperType;
     if (userParam == 3)
     {
@@ -284,22 +261,22 @@ void ModelBuilder::getDampingRatioFromUser()
         if (damperType == 'L')
         {
             double dampingRatio;
-            damper = new LinearDamper; // Creates instance of LinearDamper at Runtime.
+            damper = std::make_unique<LinearDamper>(); // Creates instance of LinearDamper at Runtime.
             std::cout << "Enter the Damping Ratio: ";
             std::cin >> dampingRatio;
             damper->setDampingRatio(dampingRatio);
-            car_.setDamper(damper);
+            car_.setDamper(std::move(damper));
             // return damper_;
         }
 
         else if (damperType == 'N')
         {
             double dampingRatio;
-            damper = new NonLinearDamper; // Creates instance of NonLinearDamper at Runtime.
+            damper = std::make_unique<NonLinearDamper>(); // Creates instance of NonLinearDamper at Runtime.
             std::cout << "Enter the NonLinear Damping Ratio: ";
             std::cin >> dampingRatio;
             damper->setDampingRatio(dampingRatio);
-            car_.setDamper(damper);
+            car_.setDamper(std::move(damper));
             // return damper_;
         }
 

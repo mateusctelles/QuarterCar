@@ -35,12 +35,6 @@ ModelBuilder model;
             repeat = sim.Graph();
 
             if (repeat != 1 && repeat != 3) {
-                delete car.getTireDamper();
-                delete car.getSpring();
-                delete car.getDamper();
-                delete car.getTireSpring();
-                delete car.getBumpStopSpring();
-                delete car.getReboundStopSpring();
                 delete road;
                 break;
             }
