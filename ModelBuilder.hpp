@@ -17,14 +17,10 @@ friend class Simulation;
 
 private:
     
-   // LinearSpring spring;
-    //LinearDamper damper;
-    
-    //Spring* spring_;
-    //Damper* damper_;
     Car car_;
     Simulation sim;
-    Road* road_;
+    std::unique_ptr<Road> road_;
+//    Road* road_;
 
     char repeatsim;
     int paramtype;
@@ -75,7 +71,7 @@ private:
 
 public:
     ModelBuilder()=default;
-    Road* getRoad(){return road_;}
+    Road* getRoad(){return road_.get();}
     //~ModelBuilder(); 
     void unitsHandler();
     //void setModelUnit(double unit){unit_= unit;}

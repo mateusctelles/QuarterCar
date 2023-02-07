@@ -310,9 +310,6 @@ void ModelBuilder::getVehicleParams()
         ;
         std::cout << "\nType '1' to define all vehicle parameters in the console.\n";
         std::cout << "Type '2' to change single selected parameters.\n";
-        // std::cout<<"Type '3' to use all vehicle parameters defined in the code. \n";
-        std::cout << "Type '3' to use model template parameters \n"
-                  << std::endl;
         std::cout << "Selection: ";
         std::cin >> paramtype;
         std::cout << "--------------------------------------------------------\n";
@@ -432,14 +429,6 @@ void ModelBuilder::getVehicleParams()
 void ModelBuilder::getSineRoadFromUser()
 {
 
-    Road *oldSineRoad = road_;
-    if (oldSineRoad != nullptr)
-    {
-        std::cout << "oldSineRoad is not nullptr";
-        delete oldSineRoad;
-        oldSineRoad = nullptr;
-    }
-
     double amplitude;
     double frequency;
     roadName_ = "Sine";
@@ -449,7 +438,7 @@ void ModelBuilder::getSineRoadFromUser()
     std::cout << "Define the sine frequency [Hz]: ";
     std::cin >> frequency;
 
-    road_ = new SineRoad(amplitude, frequency);
+    road_ = std::make_unique<SineRoad>(amplitude, frequency);
 }
 
 void ModelBuilder::getCurbRoadFromUser()
@@ -458,7 +447,7 @@ void ModelBuilder::getCurbRoadFromUser()
     std::cout << "\nCurb road input method selected.";
     std::cout << "\nDefine Curb Height " << sim.getDisplacementUnit() << ": ";
     std::cin >> height;
-    road_ = new CurbRoad(height);
+    road_ = std::make_unique<CurbRoad>(height);
 }
 
 void ModelBuilder::getSweptSineRoadFromUser()
@@ -474,7 +463,7 @@ void ModelBuilder::getSweptSineRoadFromUser()
     std::cin >> endingFrequency;
     std::cout << "Define the Amplitude of the swept sine wave " << sim.getDisplacementUnit() << ": ";
     std::cin >> amplitude;
-    road_ = new SweptSine(amplitude, startingFrequency, endingFrequency);
+    road_ = std::make_unique<SweptSine>(amplitude, startingFrequency, endingFrequency);
 }
 
 void ModelBuilder::getRampRoadFromUser()
@@ -487,7 +476,7 @@ void ModelBuilder::getRampRoadFromUser()
     std::cin >> height;
     std::cout << "\nDefine the inclination of the ramp ";
     std::cin >> inclination;
-    road_ = new RampRoad(height, inclination);
+    road_ = std::make_unique<RampRoad>(height, inclination);
 }
 
 void ModelBuilder::getFileRoadFromUser()
@@ -513,7 +502,7 @@ void ModelBuilder::getFileRoadFromUser()
         std::cout << "Define the window size [number of samples]: ";
         std::cin >> windowSize;
     }
-    road_ = new FileRoad(filename, filter, windowSize, scaling);
+    road_ = std::make_unique<FileRoad>(filename, filter, windowSize, scaling);
 }
 
 // ************************************************* Function to build Simulation *************************************************
