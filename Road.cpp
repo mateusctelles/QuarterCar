@@ -2,6 +2,7 @@
 #include <cmath>
 #include <fstream>
 #include <sstream>
+#include <algorithm>
 
 CurbRoad::CurbRoad(double height) : height(height){}
 
@@ -162,11 +163,33 @@ void FileRoad::FilterMA()
     std::cout << "Signal Filtered Sucessfully\n\n";
 }
 
+
+std::vector<double> FileRoad:: SignalResample(const std::vector<double>& signal, double targetFrequency, double originalFrequency)
+{
+    int n = signal.size();
+    std::vector<double> resampledSignal;
+    int frequencyRatio = originalFrequency/targetFrequency;
+
+    for (int i = 0; i < n * frequencyRatio; i++)
+    {
+        double t = i / targetFrequency;
+        int index = (int)t;
+        double fraction = t - index;
+        if (index + 1 < n)
+        {
+            double sample = (1.0 - fraction) * signal[index] + fraction * signal[index + 1];
+            resampledSignal.push_back(sample);
+        }
+    }
+    return resampledSignal;
+}
+
 std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
     int numSteps = simulationTime / timeStepSize;
     std::vector<double> roadLine(numSteps, 0.0);
     double original_stepsize = file_time[2] - file_time[1];
+    double originalFrequency = 1/original_stepsize;
     std::vector<double> rsmp_time(numSteps, 0.0);
     int file_nsamples = file_time.size();
 
@@ -206,6 +229,8 @@ std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSiz
     std::cout << "The first " << total_ftime << " seconds of the imported signal will be used." << std::endl;
     std::cout << "The number of samples used before the resample is: " << file_nsamples_cut << std::endl;
 
+    //roadLine = SignalResample(position, numSteps);
+    
     for (int i = 0; i < numSteps; i++)
     {
         int factor = std::round(file_nsamples_cut / numSteps);

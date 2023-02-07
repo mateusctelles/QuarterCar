@@ -56,12 +56,12 @@ private:
     char filterOption;
     int windowSize;
     double scaling;
-    void FilterMA(); 
+    void FilterMA();
+    std::vector<double> SignalResample(const std::vector<double>& signal, double targetFrequency, double originalFrequency); 
 public:
     //FileRoad()=delete;
     FileRoad(std::string fileNameIn="signal.csv", char filterIn='y', int windowSizeIn=100, double scalingIn=1.0);
-    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;      
-    
+    std::vector<double> CalcRoad(double simulationTime, double timeStepSize) override;         
 };
 
 class CurbRoad: public Road{

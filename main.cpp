@@ -4,24 +4,27 @@
 #include "Spring.hpp"
 #include "Damper.hpp"
 #include "ModelBuilder.hpp"
+#include <memory>
 
 #include <iostream>
 
 int main()
+
 {
-int repeat=3;   
+int repeat=3;
+ModelBuilder model; 
+
     while (true){
         try
-        {               
-            ModelBuilder model;
+        {   
             if (repeat == 3){
                 model.unitsHandler();
             }
             model.getVehicleParams();
             model.getSimParams();
 
-            Car car = model.getCar();
-            Road* road= model.getRoad();     
+            Car &car = model.getCar();
+            Road* road = model.getRoad();     
             Simulation sim = model.getSim();
             model.printAttributes();
 
@@ -32,6 +35,13 @@ int repeat=3;
             repeat = sim.Graph();
 
             if (repeat != 1 && repeat != 3) {
+                delete car.getTireDamper();
+                delete car.getSpring();
+                delete car.getDamper();
+                delete car.getTireSpring();
+                delete car.getBumpStopSpring();
+                delete car.getReboundStopSpring();
+                delete road;
                 break;
             }
         }
@@ -41,4 +51,6 @@ int repeat=3;
             return 1;
         }
     }
+
+    return 0;
 }

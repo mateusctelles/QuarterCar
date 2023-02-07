@@ -9,6 +9,7 @@
 #include <iostream>
 #include <cmath>
 #include <vector>
+#include <memory>
 
 class ModelBuilder{
 
@@ -51,12 +52,12 @@ private:
     std::string velocityUnit_ = "[mm/s]";
     std::string gUnit_ = "[G]";*/
 
-    Spring* getStiffnessFromUser();
+    void getStiffnessFromUser();
     void getSprungMassFromUser();
     void getUnsprungMassFromUser();
-    Damper* getDampingRatioFromUser();
-    Spring* getTireStiffnessFromUser();
-    Damper* getTireDampingFromUser();
+    void getDampingRatioFromUser();
+    void getTireStiffnessFromUser();
+    void getTireDampingFromUser();
     void getBumpStopStiffnessFromUser();
     void getReboundStopStiffnessFromUser();
     void getTravelLimitFromUser();
@@ -81,7 +82,7 @@ public:
     //double getModelUnit(){return unit_;}
     void getVehicleParams();
     void getSimParams();
-    Car getCar() const {return car_;}
+    Car &getCar() {return car_;}
     Simulation getSim(){return sim;}
     void setCarProperties();
     void printAttributes();

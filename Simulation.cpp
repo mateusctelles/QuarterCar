@@ -49,10 +49,12 @@ void Simulation::StaticEquilibrium(Car &car)
   sprungMassInitialPosition = car.getSpring()->getFreeLength() + car.getTireSpring()->getFreeLength() - sprungMassDeflection_;
   unsprungMassInitialPosition = car.getTireSpring()->getFreeLength() - tireSpringDeflection_;
   double availableBumpTravel = car.getSpring()->getFreeLength() - suspSpringDeflection_;
-  double availableReboundTravel = sprungMassDeflection_ - tireSpringDeflection_;
+  double availableReboundTravel = suspSpringDeflection_;
 
-  car.getBumpStopSpring()->setAvailableBumpTravel(-car.getSpring()->getFreeLength());
-  car.getReboundStopSpring()->setAvailableReboundTravel(0);
+  car.getBumpStopSpring()->setTriggerDistance(-availableBumpTravel);
+  car.getReboundStopSpring()->setTriggerDistance(availableReboundTravel);
+  std::cout<<"\n(Inside StaticEquilibrium Method) Available Bump Travel: "<<car.getBumpStopSpring()->getTriggerDistance()<<", set by suspSpringDeflection: "<<suspSpringDeflection_<<", and getfreelenth: "<<car.getSpring()->getFreeLength();
+  std::cout<<"\n(Inside StaticEquilibrium Method) Available Rebound Travel: "<<car.getReboundStopSpring()->getTriggerDistance();
   car.setStaticHeight(sprungMassInitialPosition);
   car.setTireStaticHeight(unsprungMassInitialPosition);
   car.getSpring()->setPreload(suspSpringDeflection_ * car.getSpring()->getStiffness(0));
@@ -65,14 +67,17 @@ void Simulation::StaticEquilibrium(Car &car)
   std::cout << "\nThe sprung mass deflection was " << sprungMassDeflection_ << " " << getDisplacementUnit() << ", and the current Ride Height is: " << sprungMassInitialPosition << getDisplacementUnit() << "."
             << ".\n\nThe available bump travel is : " << availableBumpTravel << " " << getDisplacementUnit() << ".";
   std::cout << "\nThe available rebound travel is: " << availableReboundTravel << " " << getDisplacementUnit() << ".";
-  //std::cout << "\nSelect:\n[1] Proceed with the displayed configuration.\n[2] Set a Spring Preload change ride height.\nSelection: ";
-  //std::cin >> selection;
+  // std::cout << "\nSelect:\n[1] Proceed with the displayed configuration.\n[2] Set a Spring Preload change ride height.\nSelection: ";
+  // std::cin >> selection;
   std::cout << "\n---------------------------------------------------------------------------------------------------";
 }
 
 void Simulation::Simulate(Car &car, Road &road)
 {
   StaticEquilibrium(car);
+
+  std::cout<<"\n(Inside Simulate Method) Available Bump Travel: "<<car.getBumpStopSpring()->getTriggerDistance();
+  std::cout<<"\n(Inside Simulate Method) Available Rebound Travel: "<<car.getReboundStopSpring()->getTriggerDistance();
 
   double tireStiffness = car.getSpring()->getStiffness(0);
   double suspStiffness = car.getSpring()->getStiffness(0);
@@ -140,6 +145,7 @@ void Simulation::Simulate(Car &car, Road &road)
   std::cout << "\nResponse Vectors Initialized\n";
   std::cout << "Initial Ride Height: " << sprungMassPosition[0] << ". Initial Tire Height: " << unsprungMassPosition[0];
   double relativeDisplacement = 0.0;
+  double springDisplacement = 0.0;
   double relativePosition = 0.0;
   double relativeVelocity = 0.0;
   double staticHeight = 100;
@@ -159,31 +165,30 @@ void Simulation::Simulate(Car &car, Road &road)
   for (int i = 0; i < numSteps - 1; i++)
   {
     // std::cout<<"\nCalculating relative displacements and velocities, iteration: "<<i;
-    relativeDisplacement = sprungMassDisplacement[i] - unsprungMassDisplacement[i] - suspSpringDeflection_;
-    // relativePosition = sprungMassDisplacement[i] + car.getStaticHeight() - unsprungMassDisplacement[i] - car.getTireStaticHeight();
+    springDisplacement = sprungMassDisplacement[i] - unsprungMassDisplacement[i];
+    relativeDisplacement = springDisplacement - suspSpringDeflection_;
 
-    relativeTireDisplacement = unsprungMassDisplacement[i] - roadLine[i] - tireSpringDeflection_;
-    // relativeTirePosition = relativeTireDisplacement + car.getTireStaticHeight();
+    relativeTireDisplacement = unsprungMassDisplacement[i] - roadLine[i];
 
     relativeVelocity = sprungMassVelocity[i] - unsprungMassVelocity[i];
 
-    relativeDisplacementVector[i] = relativeDisplacement;
+    relativeDisplacementVector[i] = springDisplacement;
     relativeTireDisplacementVector[i] = relativeTireDisplacement;
     tireDefLimit[i] = -car.getTireSpring()->getFreeLength();
-    springBumpLimit[i] = car.getBumpStopSpring()->getAvailableBumpTravel();
-    springReboundLimit[i] = car.getReboundStopSpring()->getAvailableReboundTravel();
-    bumpStopStiffness[i] = car.getBumpStopSpring()->getStiffness(relativeDisplacement);
+    springBumpLimit[i] = car.getBumpStopSpring()->getTriggerDistance();
+    springReboundLimit[i] = car.getReboundStopSpring()->getTriggerDistance();
+    bumpStopStiffness[i] = car.getBumpStopSpring()->getStiffness(springDisplacement);
 
     // std::cout<<"\nCalculating isolated Bumpforce, iteration: "<<i;
-    bumpStopForce[i] = car.getBumpStopSpring()->getStiffness(relativeDisplacement) * (relativeDisplacement - car.getBumpStopSpring()->getAvailableBumpTravel());
+    bumpStopForce[i] = 0/* car.getBumpStopSpring()->getStiffness(springDisplacement) * (relativeDisplacement - car.getBumpStopSpring()->getTriggerDistance())*/;
     // std::cout<<"\nCalculating isolated Rebound force, iteration: "<<i;
-    reboundStopForce[i] = car.getReboundStopSpring()->getStiffness(relativeDisplacement) * (relativeDisplacement - car.getReboundStopSpring()->getAvailableReboundTravel());
+    reboundStopForce[i] = car.getReboundStopSpring()->getStiffness(springDisplacement) * (relativeDisplacement - car.getReboundStopSpring()->getTriggerDistance());
     // std::cout<<"\nCalculating combined Stopper Force, iteration: "<<i;
     stopperForce[i] = bumpStopForce[i] + reboundStopForce[i];
     springForce[i] = car.getSpring()->getStiffness(relativeDisplacement) * (relativeDisplacement);
     damperForce[i] = car.CalcSuspDamp(relativeVelocity) * (relativeVelocity);
     tireDamperForce[i] = car.getTireDamper()->getDampingCoefficient() * (unsprungMassVelocity[i] - roadLineVelocity[i]);
-    tireElasticForce[i] = car.getTireSpring()->getStiffness(relativeTireDisplacement) * relativeTireDisplacement;
+    tireElasticForce[i] = car.getTireSpring()->getStiffness(relativeTireDisplacement) * (relativeTireDisplacement - tireSpringDeflection_);
 
     // std::cout<<"\nCalculating equations of motion, iteration: "<<i;
     sprungMassAcc[i] = ((-springForce[i] - damperForce[i] - stopperForce[i] - sprungMassWeight) / (car.getSprungMass()));                                              // Acceleration of sprung mass
@@ -205,14 +210,6 @@ void Simulation::Simulate(Car &car, Road &road)
 
     time[i + 1] = (i + 1) * timeStepSize_;
 
-    // std::cout << "\n Sprung Mass Weight: " << sprungMassWeight;
-    // std::cout << " | Unsprung Mass Weight: " << unsprungMassWeight;
-    // std::cout << " | Unsprung Mass Force: " << unsprungMassNetForce[i];
-    // std::cout << " | Sprung Mass Force: " << sprungMassNetForce[i];
-
-    // std::cout<<unsprungMassDisplacement[i] << " ; " << i <<  std::endl;
-
-    // std::cout<< i << std::endl;
   }
 
   std::cout << "\nCalculating RMS outputs. . .";
@@ -233,12 +230,12 @@ void Simulation::Simulate(Car &car, Road &road)
     throw std::runtime_error("Could not open .csv file");
   }
   file << "Time, RoadLine, SprungMassDisp, Sprung Mass Acc,Unsprung Mass Acc,BumpStopForce,ReboundStop Force,StopperForce,Tire Force,Spring Force,Damper Force, Tire Damper Force, BumpStop Stiffness, ReboundStop Stiffness, availableBumpTravel, Relative Displacement, availableReboundTravel, ";
-  file<< "roadDispRMS, sprungDispRMS, roadAccRMS, sprungAccRMS, dispRMSRatio, accRMSRatio"<<std::endl;
+  file << "roadDispRMS, sprungDispRMS, roadAccRMS, sprungAccRMS, dispRMSRatio, accRMSRatio" << std::endl;
   for (int i = 0; i < numSteps; i++)
   {
     file << time[i] << "," << roadLine[i] << "," << sprungMassDisplacement[i] << "," << sprungMassAccG[i] << "," << unsprungMassAccG[i] << "," << bumpStopForce[i] << "," << reboundStopForce[i] << "," << stopperForce[i] << "," << tireElasticForce[i] << ","
-         << springForce[i] << "," << damperForce[i] << "," << tireDamperForce[i]<<","<< bumpStopStiffness[i] << "," << reboundStopStiffness[i] << "," << car.getBumpStopSpring()->getAvailableBumpTravel() << ","
-         << relativeDisplacementVector[i] << "," << car.getReboundStopSpring()->getAvailableReboundTravel() << "," << roadLineDisplacementRMS[i] << "," << sprungMassDisplacementRMS[i] << "," << roadLineAccelerationRMS[i] << ","
+         << springForce[i] << "," << damperForce[i] << "," << tireDamperForce[i] << "," << bumpStopStiffness[i] << "," << reboundStopStiffness[i] << "," << car.getBumpStopSpring()->getTriggerDistance() << ","
+         << relativeDisplacementVector[i] << "," << car.getReboundStopSpring()->getTriggerDistance() << "," << roadLineDisplacementRMS[i] << "," << sprungMassDisplacementRMS[i] << "," << roadLineAccelerationRMS[i] << ","
          << sprungMassDisplacementRMS[i] << "," << displacementRMSRatio[i] << "," << accelerationRMSRatio[i] << std::endl;
   }
 

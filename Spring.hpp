@@ -10,14 +10,12 @@ public:
    // Spring() = default;
     virtual double getStiffness(double displacement = 0) = 0;
     virtual double getFreeLength()=0;
-    virtual double getAvailableBumpTravel(){return 0;}
-    virtual double getAvailableReboundTravel(){return 0;}
+    virtual double getTriggerDistance(){return 0;}
     virtual double getPreload(){return 0;}
     virtual void setPreload(double preload){};
     virtual void setStiffness(double stiffness)=0;
     virtual void setFreeLength(double length)=0;
-    virtual void setAvailableBumpTravel(double availableBumptravel){};
-    virtual void setAvailableReboundTravel(double availableReboundTravel){};
+    virtual void setTriggerDistance(double TriggerDistance){};
 };
 
 class LinearSpring : public Spring {
@@ -34,7 +32,6 @@ public:
     void setPreload(double preload){this->preload = preload;}
     void setStiffness(double stiffness);
     void setFreeLength(double length){this->length = length;}
-
 };
 
 class NonLinearSpring : public Spring {
@@ -50,10 +47,26 @@ public:
     double getPreload(){return preload;}
     void setPreload(double preload){this->preload = preload;}
     void setStiffness(double stiffness);
-    void setFreeLength(double length){this->length = length;}
+    void setFreeLength(double length){this->length = length;} 
 };
 
-class TireSpring : public Spring {
+class LinearContactSpring : public Spring{
+private:
+    double stiffness;
+    double freeLength;
+    double triggerDistance;
+public:
+    LinearContactSpring() = default;
+    LinearContactSpring(double stiffness);
+    double getStiffness(double relativeDisplacement);
+    double getFreeLength(){return freeLength;}
+    double getTriggerDistance(){return triggerDistance;}
+    void setTriggerDistance(double TriggerDistance) {this->triggerDistance = triggerDistance;}
+    void setStiffness(double stiffness) {this->stiffness = stiffness;}
+    void setFreeLength(double length)  {freeLength = length;}
+};
+
+/*class TireSpring : public Spring {
 private:
     double stiffness;
     double tireHeight=50;
@@ -67,9 +80,9 @@ public:
     void setStiffness(double stiffness);
     double getFreeLength(){return tireHeight;}
     void setFreeLength(double length){tireHeight = length;}
-};
+};*/
 
-class BumpStopSpring : public Spring {
+/*class BumpStopSpring : public Spring {
 private:
     double stiffness;
     double stopperLength;
@@ -80,12 +93,12 @@ public:
     BumpStopSpring(double stiffness);
     double getStiffness(double relativeDisplacement);
     double getFreeLength(){return stopperLength;}
-    double getAvailableBumpTravel(){/*std::cout<<"Got availableBumpTravel: "<<availableBumpTravel; */
+    double getAvailableBumpTravel(){/*std::cout<<"Got availableBumpTravel: "<<availableBumpTravel; 
     return availableBumpTravel;}
-    double getAvailableReboundTravel(){/*std::cout<<"Got availableReboundTravel: "<<availableReboundTravel;*/
+    double getAvailableReboundTravel(){std::cout<<"Got availableReboundTravel: "<<availableReboundTravel;
     return availableReboundTravel;}
     void setStiffness(double stiffness){this->stiffness = stiffness;};
-    void setFreeLength(double length){stopperLength = length;}
+    void setFreeLength(double length) {stopperLength = length;}
     void setAvailableBumpTravel(double availableBumpTravel){this->availableBumpTravel = availableBumpTravel;}
     void setAvailableReboundTravel(double availableReboundTravel){this->availableReboundTravel = availableReboundTravel;}
 };
@@ -101,14 +114,14 @@ public:
     ReboundStopSpring(double stiffness);
     double getStiffness(double relativeDisplacement);
     double getFreeLength(){return stopperLength;}
-    double getAvailableBumpTravel(){/*std::cout<<"Got availableBumpTravel: "<<availableBumpTravel; */
+    double getAvailableBumpTravel(){/*std::cout<<"Got availableBumpTravel: "<<availableBumpTravel; 
     return availableBumpTravel;}
-    double getAvailableReboundTravel(){/*std::cout<<"Got availableReboundTravel: "<<availableReboundTravel;*/
+    double getAvailableReboundTravel(){/*std::cout<<"Got availableReboundTravel: "<<availableReboundTravel;
     return availableReboundTravel;}
     void setStiffness(double stiffness){this->stiffness = stiffness;};
     void setFreeLength(double length){stopperLength = length;}
     void setAvailableBumpTravel(double availableBumpTravel){this->availableBumpTravel = availableBumpTravel;}
     void setAvailableReboundTravel(double availableReboundTravel){this->availableReboundTravel = availableReboundTravel;}
 };
-
+*/
 #endif

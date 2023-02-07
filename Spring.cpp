@@ -15,64 +15,18 @@ void LinearSpring::setStiffness(double stiffness)
     this->stiffness = stiffness;
 }
 
-BumpStopSpring::BumpStopSpring(double stiffness) {}
-double BumpStopSpring::getStiffness(double relativeDisplacement)
-{
-    if (relativeDisplacement >= availableBumpTravel)
-    {
-        // stiffness = 0;
-        // std::cout<<"\nStiffness "<<0<<" , because "<<availableBumpTravel<<" bp <"<<relativeDisplacement<<" < rdisp "<<availableReboundTravel<<" rbd";
-        // std::cout<<"\nGot no stiffness: "<<stiffness<<" | The relative displacement used is: "<<relativeDisplacement<<" | ";
-        return 0;
-    }
-    else
-    {
-        // std::cout<<"\nGot rebound stiffness: "<<stiffness<<" | The relative displacement used is: "<<relativeDisplacement<<" | ";
-        // std::cout<<"\nRebound Stiffness "<<stiffness<<", because "<<relativeDisplacement<<" rdisp > "<<availableReboundTravel<<" rbd";
-        return stiffness;
-    }
-}
+LinearContactSpring::LinearContactSpring(double stiffness) {}
 
-ReboundStopSpring::ReboundStopSpring(double stiffness) {}
-double ReboundStopSpring::getStiffness(double relativeDisplacement)
+double LinearContactSpring::getStiffness(double relativeDisplacement)
 {
-    if (relativeDisplacement <= availableReboundTravel)
-    {
-        // stiffness = 0;
-        // std::cout<<"\nStiffness "<<0<<" , because "<<availableBumpTravel<<" bp <"<<relativeDisplacement<<" < rdisp "<<availableReboundTravel<<" rbd";
-        // std::cout<<"\nGot no stiffness: "<<stiffness<<" | The relative displacement used is: "<<relativeDisplacement<<" | ";
-        return 0;
-    }
-    else
-    {
-        // std::cout<<"\nGot rebound stiffness: "<<stiffness<<" | The relative displacement used is: "<<relativeDisplacement<<" | ";
-        // std::cout<<"\nRebound Stiffness "<<stiffness<<", because "<<relativeDisplacement<<" rdisp > "<<availableReboundTravel<<" rbd";
-        return stiffness;
-    }
-}
-
-TireSpring::TireSpring(double stiffness) {}
-
-double TireSpring::getStiffness(double relativeTireDisplacement)
-{
-    if (relativeTireDisplacement <= 0 && relativeTireDisplacement >= -tireHeight)
+    if (relativeDisplacement <= triggerDistance)
     {
         return stiffness;
-    }
-    else if (relativeTireDisplacement < -tireHeight)
-    {
-        return stiffness + 1000;
-        // return stiffness * wheelSpring.getWheelStiffness();
     }
     else
     {
         return 0;
     }
-}
-
-void TireSpring::setStiffness(double stiffness)
-{
-    this->stiffness = stiffness;
 }
 
 NonLinearSpring::NonLinearSpring(double stiffness) {}

@@ -97,13 +97,9 @@ void ModelBuilder::printAttributes()
 
     std::cout << "\n\n===================================== DEFINED MODEL PARAMETERS =====================================\n\n";
     std::cout << "Suspension Stiffness: " << car_.getSpring()->getStiffness(0);
-
     std::cout << "\nSuspension Damping Ratio: " << car_.getDamper()->getDampingRatio(0) << " | Damping Coefficient: " << car_.CalcSuspDamp(0) / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
-    //std::cout << "\nSuspension Available Jounce Travel: " << (car_.getSpring()->getFreeLength() - sim.getSuspSpringDeflection()) / -sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
-    //std::cout << "\nSuspension Available Rebound Travel: " << (sim.getSprungMassDeflection()-sim.getTireSpringDeflection()) / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
-    //std::cout << "\nSprung Mass Height to the Tire: " << car_.getStaticHeight() / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
     std::cout << "\nBumpstop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0) / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
-    // std::cout << "\nRebound Stop Stiffness: " << car_.getReboundStopStiffness() / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
+    std::cout << "\nAvailable Bump Travel: " << car_.getBumpStopSpring()->getTriggerDistance() / sim.getDisplacementUnitScaling() << " " << sim.getDisplacementUnit();
     std::cout << "\nTire Vertical Stiffness: " << car_.getTireSpring()->getStiffness(0) / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
     std::cout << "\nTire Damping: " << car_.getTireDamper()->getDampingCoefficient() / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
     std::cout << "\nSprung Mass: " << car_.getSprungMass() / sim.getMassUnitScaling() << " " << sim.getMassUnit();
@@ -129,30 +125,45 @@ void ModelBuilder::getUnsprungMassFromUser()
     car_.setUnsprungMass(unsprungMass * sim.getMassUnitScaling());
 }
 
-Spring *ModelBuilder::getTireStiffnessFromUser()
+void ModelBuilder::getTireStiffnessFromUser()
 {
+    /*Spring *oldTireSpring = car_.getTireSpring();
+    if (oldTireSpring != nullptr)
+    {
+        std::cout << "oldTireSpring  is not nullptr";
+        delete oldTireSpring;
+        oldTireSpring = nullptr;
+    }*/
+
     double stiffness;
     double height;
     //~delete TireSpring
-    Spring *tireSpring_ = new TireSpring;
+    Spring *tireSpring = new LinearContactSpring;
     std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> stiffness;
-    tireSpring_->setStiffness(stiffness * sim.getStiffnessUnitScaling());
+    tireSpring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
     std::cout << "\nEnter the Tire Sidewall Height " << sim.getDisplacementUnit() << ": ";
     std::cin >> height;
-    tireSpring_->setFreeLength(height * sim.getStiffnessUnitScaling());
-    car_.setTireSpring(tireSpring_);
+    tireSpring->setFreeLength(height * sim.getStiffnessUnitScaling());
+    car_.setTireSpring(tireSpring);
     std::cout << "Car received Tire Stiffness: \n"
               << car_.getTireSpring()->getStiffness(0) << std::endl;
     std::cout << "Car received Tire Sidewall Height: \n"
               << car_.getTireSpring()->getFreeLength() << std::endl;
-    return tireSpring_;
+    // return tireSpring_;
 }
 
 void ModelBuilder::getBumpStopStiffnessFromUser()
 {
+    /*Spring *oldBumpStopSpring = car_.getBumpStopSpring();
+    if (oldBumpStopSpring != nullptr)
+    {
+        std::cout << "oldBumpStopSpring is not nullptr";
+        delete oldBumpStopSpring;
+        oldBumpStopSpring = nullptr;
+    }*/
     double kStopper;
-    Spring *bumpStopSpring = new BumpStopSpring;
+    Spring *bumpStopSpring = new LinearContactSpring;
     std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> kStopper;
     bumpStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
@@ -162,84 +173,109 @@ void ModelBuilder::getBumpStopStiffnessFromUser()
 
 void ModelBuilder::getReboundStopStiffnessFromUser()
 {
-    double kStopper;
-    Spring *reboundStopSpring = new ReboundStopSpring;
+    double kStopper; 
+    /*Spring* oldReboundStopSpring = car_.getReboundStopSpring();
+    if(oldReboundStopSpring != nullptr){
+         std::cout<<"oldBumpStopSpring is not nullptr";
+         delete oldReboundStopSpring;
+         oldReboundStopSpring = nullptr;
+    }*/
+
+    Spring *reboundStopSpring = new LinearContactSpring;
     std::cout << "\nEnter the Rebound Stop Stiffness " << sim.getStiffnessUnit() << ": ";
     std::cin >> kStopper;
     reboundStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
     car_.setReboundStopSpring(reboundStopSpring);
     std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
+    // delete reboundStopSpring;
 }
 
-Spring *ModelBuilder::getStiffnessFromUser()
+void ModelBuilder::getStiffnessFromUser()
 {
-    Spring *spring_;
-    char springType;
-    if (userParam == 3)
+    /**Spring *oldSpring = car_.getSpring();
+    if (oldSpring != nullptr)
     {
-        double stiffness = 30;
-        spring_->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-        return spring_;
+        std::cout << "oldSpring is not nullptr";
+        delete oldSpring;
+        oldSpring = nullptr;
+    }*/
+
+    //Spring *spring;
+    std::unique_ptr<Spring> spring;
+    char springType;
+
+    std::cout << "\nSelect the spring type: (L for linear, N for nonlinear): ";
+    std::cin >> springType;
+    if (springType == 'L')
+    {
+        double stiffness;
+        double length;
+        spring=std::make_unique<LinearSpring>(); // Creates instance of LinearSpring at Runtime.
+        std::cout << "Enter the suspension spring stiffness value " << sim.getStiffnessUnit() << ": ";
+        std::cin >> stiffness;
+        spring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
+        std::cout << "Enter the spring free length value: " << sim.getDisplacementUnit() << ": ";
+        std::cin >> length;
+        spring->setFreeLength(length * sim.getDisplacementUnitScaling());
+        car_.setSpring(std::move(spring));
+        std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
+        std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
+        // return spring_;
+    }
+    else if (springType == 'N')
+    {
+        double stiffness;
+        spring = std::make_unique<NonLinearSpring>(); // Creates instance of NonLinearSpring at Runtime.
+        std::cout << "Enter the suspension nonlinear stiffness value " << sim.getStiffnessUnit() << ": ";
+        std::cin >> stiffness;
+        spring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
+        std::cout << "\nCar received stiffness: " << spring->getStiffness(0);
+        car_.setSpring(std::move(spring));
+        // return spring_;
     }
     else
     {
-        std::cout << "\nSelect the spring type: (L for linear, N for nonlinear): ";
-        std::cin >> springType;
-        if (springType == 'L')
-        {
-            double stiffness;
-            double length;
-            spring_ = new LinearSpring; // Creates instance of LinearSpring at Runtime.
-            std::cout << "Enter the suspension spring stiffness value " << sim.getStiffnessUnit() << ": ";
-            std::cin >> stiffness;
-            spring_->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-            std::cout << "Enter the spring free length value: " << sim.getDisplacementUnit() << ": ";
-            std::cin >> length;
-            spring_->setFreeLength(length * sim.getDisplacementUnitScaling());
-            car_.setSpring(spring_);
-            std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
-            std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
-            return spring_;
-        }
-
-        else if (springType == 'N')
-        {
-            double stiffness;
-            spring_ = new NonLinearSpring; // Creates instance of NonLinearSpring at Runtime.
-            std::cout << "Enter the suspension nonlinear stiffness value " << sim.getStiffnessUnit() << ": ";
-            std::cin >> stiffness;
-            spring_->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-            std::cout << "\nCar received stiffness: " << spring_->getStiffness(0);
-            return spring_;
-        }
-        else
-        {
-            std::cout << "\nInvalid Option";
-            return nullptr;
-        }
+        std::cout << "\nInvalid Option";
+        // return nullptr;
     }
 }
 
-Damper* ModelBuilder::getTireDampingFromUser()
+
+void ModelBuilder::getTireDampingFromUser()
 {
-    Damper* tireDamper;
+    /*Damper *oldTireDamper = car_.getTireDamper();
+    if (oldTireDamper != nullptr)
+    {
+        std::cout << "getTireDamper is not nullptr";
+        delete oldTireDamper;
+        oldTireDamper = nullptr;
+    }*/
+
+    Damper *tireDamper;
     tireDamper = new LinearDamper;
     double cTire;
     std::cout << "\nEnter the Tire Damping " << sim.getDampingUnit() << ": ";
     std::cin >> cTire;
-    tireDamper->setDampingCoefficient(cTire*sim.getDampingUnitScaling());
+
+    tireDamper->setDampingCoefficient(cTire * sim.getDampingUnitScaling());
     car_.setTireDamper(tireDamper);
-    return tireDamper;
 }
 
-Damper *ModelBuilder::getDampingRatioFromUser()
+void ModelBuilder::getDampingRatioFromUser()
 {
-    Damper *damper_;
+    /*Damper* oldDamper = car_.getDamper();
+    if(oldDamper != nullptr){
+        std::cout<<"oldDamper is not nullptr";
+        delete oldDamper;
+        oldDamper = nullptr;
+    }*/
+
+    Damper *damper;
     char damperType;
     if (userParam == 3)
     {
-        damper_->setDampingRatio(0.5);
-        return damper_;
+        damper->setDampingRatio(0.5);
+        // return damper_;
     }
     else
     {
@@ -248,41 +284,32 @@ Damper *ModelBuilder::getDampingRatioFromUser()
         if (damperType == 'L')
         {
             double dampingRatio;
-            damper_ = new LinearDamper; // Creates instance of LinearDamper at Runtime.
+            damper = new LinearDamper; // Creates instance of LinearDamper at Runtime.
             std::cout << "Enter the Damping Ratio: ";
             std::cin >> dampingRatio;
-            damper_->setDampingRatio(dampingRatio);
-            car_.setDamper(damper_);
-            return damper_;
+            damper->setDampingRatio(dampingRatio);
+            car_.setDamper(damper);
+            // return damper_;
         }
 
         else if (damperType == 'N')
         {
             double dampingRatio;
-            damper_ = new NonLinearDamper; // Creates instance of NonLinearDamper at Runtime.
+            damper = new NonLinearDamper; // Creates instance of NonLinearDamper at Runtime.
             std::cout << "Enter the NonLinear Damping Ratio: ";
             std::cin >> dampingRatio;
-            damper_->setDampingRatio(dampingRatio);
-            car_.setDamper(damper_);
-            return damper_;
+            damper->setDampingRatio(dampingRatio);
+            car_.setDamper(damper);
+            // return damper_;
         }
 
         else
         {
             std::cout << "\nInvalid Option";
-            return nullptr;
+            // return nullptr;
         }
     }
 }
-
-/*void ModelBuilder::getTravelLimitFromUser()
-{
-    double travelLimit;
-    std::cout << "\nEnter the travel limit " << sim.getDisplacementUnit() << ": ";
-    std::cin >> travelLimit;
-    car_.setMaxTravel(travelLimit * sim.getDisplacementUnitScaling());
-    //std::cout << "\nCar received Max Travel: " << car_.getMaxBumpTravel() << std::endl;
-}*/
 
 void ModelBuilder::getStaticHeightFromUser()
 {
@@ -291,8 +318,6 @@ void ModelBuilder::getStaticHeightFromUser()
     std::cin >> staticHeight;
     car_.setStaticHeight(staticHeight * sim.getDisplacementUnitScaling());
 }
-
-
 
 void ModelBuilder::getVehicleParams()
 {
@@ -331,7 +356,7 @@ void ModelBuilder::getVehicleParams()
 
             // Define bumpstop stiffness
             getBumpStopStiffnessFromUser();
-            
+
             // Define bumpstop stiffness
             getReboundStopStiffnessFromUser();
 
@@ -362,7 +387,7 @@ void ModelBuilder::getVehicleParams()
                 std::cout << "\n(5) Rebound Stop Stiffness " << sim.getStiffnessUnit();
                 std::cout << "\n(6) Unsprung Mass " << sim.getMassUnit();
                 std::cout << "\n(7) Tire Vertical Stiffness and Sidewall Height" << sim.getStiffnessUnit();
-                std::cout<< "\n(8) Tire Vertical Damping: "<< sim.getDampingUnit();
+                std::cout << "\n(8) Tire Vertical Damping: " << sim.getDampingUnit();
 
                 std::cout << "\nSelection: ";
                 std::cin >> param;
@@ -410,12 +435,12 @@ void ModelBuilder::getVehicleParams()
 
         else if (paramtype == 3)
         {
-            userParam = paramtype;
+            /*userParam = paramtype;
             car_.setSprungMass(120 * sim.getMassUnitScaling());
             car_.setSpring(getStiffnessFromUser());
             car_.setDamper(getDampingRatioFromUser());
             car_.setUnsprungMass(20 * sim.getMassUnitScaling());
-            car_.setTireDamping(0);
+            car_.setTireDamping(0);*/
             // car_.setKBumpstop(1000 * sim.getStiffnessUnitScaling());
             //  car_.setMaxTravel(100 * sim.getDisplacementUnitScaling());
             // car_.setTireStiffness(90 * sim.getStiffnessUnitScaling());
@@ -429,6 +454,15 @@ void ModelBuilder::getVehicleParams()
 //************************************************ Functions to Build Road******************************************************
 void ModelBuilder::getSineRoadFromUser()
 {
+
+    Road *oldSineRoad = road_;
+    if (oldSineRoad != nullptr)
+    {
+        std::cout << "oldSineRoad is not nullptr";
+        delete oldSineRoad;
+        oldSineRoad = nullptr;
+    }
+
     double amplitude;
     double frequency;
     roadName_ = "Sine";
@@ -437,6 +471,7 @@ void ModelBuilder::getSineRoadFromUser()
     std::cin >> amplitude; // meters
     std::cout << "Define the sine frequency [Hz]: ";
     std::cin >> frequency;
+
     road_ = new SineRoad(amplitude, frequency);
 }
 
