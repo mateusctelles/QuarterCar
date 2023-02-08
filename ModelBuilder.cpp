@@ -63,6 +63,7 @@ void ModelBuilder::unitsHandler()
         sim.setForceUnit(forceUnit);
         sim.setVelocityUnit(velocityUnit);
         sim.setDampingUnit(dampingUnit);
+        sim.setMassUnit(massUnit);
         break;
 
     case 2:
@@ -87,6 +88,7 @@ void ModelBuilder::unitsHandler()
         sim.setForceUnit(forceUnit);
         sim.setVelocityUnit(velocityUnit);
         sim.setDampingUnit(dampingUnit);
+        sim.setMassUnit(massUnit);
         break;
 
     case 3:

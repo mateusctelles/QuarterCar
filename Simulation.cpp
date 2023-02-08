@@ -552,12 +552,14 @@ int Simulation::Graph()
     {
       while (true)
       {
-        std::cout << "\n[1] Toggle on/off Suspension Spring Travel";
-        std::cout << "\n[2] Toggle on/off Tire Spring Travel";
+        std::cout << "\n-----------------------------PLOT SETTINGS------------------------------";
+        std::cout << "\n\n[1] Toggle on/off Suspension Spring Travel visualization";
+        std::cout << "\n[2] Toggle on/off Tire Spring Travel visualization";
         std::cout << "\n[3] Toggle on/off Road Profile Displacement within Position plot.";
         std::cout << "\n[4] Toggle between Displacement RMS Ratio or Acceleration RMS Ratio";
         std::cout << "\n[5] Toggle Plot Layout (Displacement-Centered / Forces-Centered)";
         std::cout << "\nSelection: ";
+        std::cout <<" \n------------------------------------------------------------------------";
         if (std::cin >> togglePlot && (togglePlot >= 1 && togglePlot <= 5))
         {
           break;
