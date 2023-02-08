@@ -87,6 +87,13 @@ private:
 
     std::vector<double> time;
 
+    //Methods called inside Simulate method.
+    void ExportResults(int numSteps, Car &car);
+    void StaticEquilibrium(Car &car);
+    void InitializeVectors(int numSteps, Car &car);
+    std::vector<double> CalculateRMS(std::vector<double> &signal);
+    std::vector<double> CalculateSignalRatio(std::vector<double> &inputSignal, std::vector<double> &outputSignal);
+
 public:
     Simulation() = default;
     Simulation(double t_final_In, double dtIn);
@@ -129,9 +136,7 @@ public:
     void setDampingUnit(std::string dampingUnit){dampingUnit_=dampingUnit;}
 
     void Simulate(Car &car, Road &road);
-    void StaticEquilibrium(Car &car);
-    std::vector<double> CalculateRMS(std::vector<double> &signal);
-    std::vector<double> CalculateSignalRatio(std::vector<double> &inputSignal, std::vector<double> &outputSignal);
+
 
     int Graph();
 };

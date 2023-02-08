@@ -22,6 +22,7 @@ private:
     std::unique_ptr<Road> road_;
 //    Road* road_;
 
+    int usage_=0;
     char repeatsim;
     int paramtype;
     char repeatparam;

@@ -19,9 +19,20 @@ void ModelBuilder::unitsHandler()
     std::string velocityUnit;
     std::string gUnit;
 
-    std::cout << "\nChoose the unit type for displacement: \n[1] Milimiters [mm], \n[2] Meters [m], \n[3] Consistent Units Convention\nSelection: ";
-    std::cin >> unitType;
-
+    while (true)
+    {
+        std::cout << "\nChoose the unit type for displacement: \n[1] Milimiters [mm], \n[2] Meters [m], \n[3] Consistent Units Convention\nSelection: ";
+        if (std::cin >> unitType && (unitType >= 1 && unitType <= 3))
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid option." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     switch (unitType)
     {
     case 1:
@@ -106,22 +117,45 @@ void ModelBuilder::printAttributes()
     std::cout << "\nUnsprung Mass: " << car_.getUnsprungMass() / sim.getMassUnitScaling() << " " << sim.getMassUnit();
     std::cout << "\nRide Frequency: " << car_.CalcRideFreq() << " [Hz]";
     std::cout << "\n====================================================================================================\n";
-    // std::cout << "Simulation Time: "<<
 }
 
 void ModelBuilder::getSprungMassFromUser()
 {
     double sprungMass;
-    std::cout << "\nEnter the sprung mass " << sim.getMassUnit() << ": ";
-    std::cin >> sprungMass;
+    while (true)
+    {
+        std::cout << "\nEnter the Sprung Mass " << sim.getMassUnit() << ": ";
+        if (std::cin >> sprungMass)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Error: Invalid input. Please enter a valid number." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
     car_.setSprungMass(sprungMass * sim.getMassUnitScaling());
 }
-
 void ModelBuilder::getUnsprungMassFromUser()
 {
     double unsprungMass;
-    std::cout << "\nEnter the unsprung mass " << sim.getMassUnit() << ": ";
-    std::cin >> unsprungMass;
+    while (true)
+    {
+        std::cout << "\nEnter the Unsprung Mass " << sim.getMassUnit() << ": ";
+        if (std::cin >> unsprungMass)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid number." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     car_.setUnsprungMass(unsprungMass * sim.getMassUnitScaling());
 }
 
@@ -138,18 +172,44 @@ void ModelBuilder::getTireStiffnessFromUser()
     double stiffness;
     double height;
     //~delete TireSpring
-    std::unique_ptr<Spring>tireSpring = std::make_unique<LinearContactSpring>();
-    std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
-    std::cin >> stiffness;
+    std::unique_ptr<Spring> tireSpring = std::make_unique<LinearContactSpring>();
+
+    while (true)
+    {
+        std::cout << "\nEnter the Tire Stiffness " << sim.getStiffnessUnit() << ": ";
+        if (std::cin >> stiffness)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid number." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
     tireSpring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-    std::cout << "\nEnter the Tire Sidewall Height " << sim.getDisplacementUnit() << ": ";
-    std::cin >> height;
+
+    while (true)
+    {
+        std::cout << "\nEnter the Tire Sidewall Height " << sim.getDisplacementUnit() << ": ";
+        if (std::cin >> height)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid number." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
     tireSpring->setFreeLength(height * sim.getStiffnessUnitScaling());
     car_.setTireSpring(std::move(tireSpring));
-    std::cout << "Car received Tire Stiffness: \n"
-              << car_.getTireSpring()->getStiffness(0) << std::endl;
-    std::cout << "Car received Tire Sidewall Height: \n"
-              << car_.getTireSpring()->getFreeLength() << std::endl;
+    //std::cout << "Car received Tire Stiffness: \n"              << car_.getTireSpring()->getStiffness(0) << std::endl;
+    //std::cout << "Car received Tire Sidewall Height: \n"              << car_.getTireSpring()->getFreeLength() << std::endl;
     // return tireSpring_;
 }
 
@@ -164,75 +224,156 @@ void ModelBuilder::getBumpStopStiffnessFromUser()
     }*/
     double kStopper;
     std::unique_ptr<Spring> bumpStopSpring = std::make_unique<LinearContactSpring>();
-    std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
-    std::cin >> kStopper;
+
+    while (true)
+    {
+        std::cout << "\nEnter the Bumpstop Stiffness " << sim.getStiffnessUnit() << ": ";
+        if (std::cin >> kStopper)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid number." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
     bumpStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
     car_.setBumpStopSpring(std::move(bumpStopSpring));
-    std::cout << "\nCar received Bump stop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0);
+    //std::cout << "\nCar received Bump stop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0);
 }
 
 void ModelBuilder::getReboundStopStiffnessFromUser()
 {
-    double kStopper; 
+    double kStopper;
     std::unique_ptr<Spring> reboundStopSpring = std::make_unique<LinearContactSpring>();
-    std::cout << "\nEnter the Rebound Stop Stiffness " << sim.getStiffnessUnit() << ": ";
-    std::cin >> kStopper;
+    while (true)
+    {
+        std::cout << "\nEnter the Rebound Stop Stiffness " << sim.getStiffnessUnit() << ": ";
+        if (std::cin >> kStopper)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a number value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     reboundStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
     car_.setReboundStopSpring(std::move(reboundStopSpring));
-    std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
-    // delete reboundStopSpring;
+    //std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
 }
 
 void ModelBuilder::getStiffnessFromUser()
 {
-    //Spring *spring;
     std::unique_ptr<Spring> spring;
-    char springType;
+    int springType;
 
-    std::cout << "\nSelect the spring type: (L for linear, N for nonlinear): ";
-    std::cin >> springType;
-    if (springType == 'L')
+    while (true)
+    {
+        std::cout << "\nSelect the Spring type: Enter [1] for Linear or [2] for Nonlinear: ";
+        std::cout << "\nSelection: ";
+        if (std::cin >> springType && (springType == 1 || springType == 2))
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid option." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
+    if (springType == 1)
     {
         double stiffness;
         double length;
-        spring=std::make_unique<LinearSpring>(); // Creates instance of LinearSpring at Runtime.
-        std::cout << "Enter the suspension spring stiffness value " << sim.getStiffnessUnit() << ": ";
-        std::cin >> stiffness;
+        spring = std::make_unique<LinearSpring>(); // Creates instance of LinearSpring at Runtime.
+        while (true)
+        {
+            std::cout << "\nEnter the Suspension Spring Stiffness " << sim.getStiffnessUnit() << ": ";
+            if (std::cin >> stiffness)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
         spring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-        std::cout << "Enter the spring free length value: " << sim.getDisplacementUnit() << ": ";
-        std::cin >> length;
+
+        while (true)
+        {
+            std::cout << "\nEnter the spring Free Length: " << sim.getDisplacementUnit() << ": ";
+            if (std::cin >> length)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+
         spring->setFreeLength(length * sim.getDisplacementUnitScaling());
         car_.setSpring(std::move(spring));
-        std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
-        std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
-        // return spring_;
+        //std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
+        //std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
     }
-    else if (springType == 'N')
+
+    else if (springType == 2)
     {
         double stiffness;
         spring = std::make_unique<NonLinearSpring>(); // Creates instance of NonLinearSpring at Runtime.
-        std::cout << "Enter the suspension nonlinear stiffness value " << sim.getStiffnessUnit() << ": ";
-        std::cin >> stiffness;
+        while (true)
+        {
+            std::cout << "\nEnter the Suspension Nonlinear Stiffness " << sim.getStiffnessUnit() << ": ";
+            if (std::cin >> stiffness)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
         spring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-        std::cout << "\nCar received stiffness: " << spring->getStiffness(0);
+        //std::cout << "\nCar received stiffness: " << spring->getStiffness(0);
         car_.setSpring(std::move(spring));
-        // return spring_;
-    }
-    else
-    {
-        std::cout << "\nInvalid Option";
-        // return nullptr;
     }
 }
 
-
 void ModelBuilder::getTireDampingFromUser()
 {
-    std::unique_ptr<Damper>tireDamper;
+    std::unique_ptr<Damper> tireDamper;
     tireDamper = std::make_unique<LinearDamper>();
     double cTire;
-    std::cout << "\nEnter the Tire Damping " << sim.getDampingUnit() << ": ";
-    std::cin >> cTire;
+    while (true)
+    {
+        std::cout << "\nEnter the Tire Damping " << sim.getDampingUnit() << ": ";
+        if (std::cin >> cTire)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
 
     tireDamper->setDampingCoefficient(cTire * sim.getDampingUnitScaling());
     car_.setTireDamper(std::move(tireDamper));
@@ -247,44 +388,70 @@ void ModelBuilder::getDampingRatioFromUser()
         oldDamper = nullptr;
     }*/
 
-    std::unique_ptr<Damper>damper;
-    char damperType;
-    if (userParam == 3)
-    {
-        damper->setDampingRatio(0.5);
-        // return damper_;
-    }
-    else
-    {
-        std::cout << "\nSelect the damper type: (L for linear, N for nonlinear): ";
-        std::cin >> damperType;
-        if (damperType == 'L')
-        {
-            double dampingRatio;
-            damper = std::make_unique<LinearDamper>(); // Creates instance of LinearDamper at Runtime.
-            std::cout << "Enter the Damping Ratio: ";
-            std::cin >> dampingRatio;
-            damper->setDampingRatio(dampingRatio);
-            car_.setDamper(std::move(damper));
-            // return damper_;
-        }
+    std::unique_ptr<Damper> damper;
+    int damperType;
 
-        else if (damperType == 'N')
+    while (true)
+    {
+        std::cout << "\nSelect the Damper Type: Enter [1] for Linear, [2] for Nonlinear: ";
+        if (std::cin >> damperType && (damperType == 1 || damperType == 2))
         {
-            double dampingRatio;
-            damper = std::make_unique<NonLinearDamper>(); // Creates instance of NonLinearDamper at Runtime.
-            std::cout << "Enter the NonLinear Damping Ratio: ";
-            std::cin >> dampingRatio;
-            damper->setDampingRatio(dampingRatio);
-            car_.setDamper(std::move(damper));
-            // return damper_;
+            break;
         }
-
         else
         {
-            std::cout << "\nInvalid Option";
-            // return nullptr;
+            std::cout << "Invalid input. Please enter a valid option." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
+    }
+    if (damperType == 1)
+    {
+        double dampingRatio;
+        damper = std::make_unique<LinearDamper>(); // Creates instance of LinearDamper at Runtime.
+        while (true)
+        {
+            std::cout << "Enter the Damping Ratio: ";
+            if (std::cin >> dampingRatio)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "\nInvalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+        damper->setDampingRatio(dampingRatio);
+        car_.setDamper(std::move(damper));
+    }
+
+    else if (damperType == 'N')
+    {
+        double dampingRatio;
+        damper = std::make_unique<NonLinearDamper>(); // Creates instance of NonLinearDamper at Runtime.
+        while (true)
+        {
+            std::cout << "Enter the NonLinear Damping Ratio: ";
+            if (std::cin >> dampingRatio)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "\nInvalid input. Please enter a valid ." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+        damper->setDampingRatio(dampingRatio);
+        car_.setDamper(std::move(damper));
+    }
+
+    else
+    {
+        std::cout << "\nInvalid Option";
     }
 }
 
@@ -298,130 +465,183 @@ void ModelBuilder::getStaticHeightFromUser()
 
 void ModelBuilder::getVehicleParams()
 {
+    if (usage_ == 0)
+    {
+        //std::cout << "\nfirstUsage: " << usage_;
+        repeatparam = 'y';
+    }
+    else
+    {
+        //std::cout << "\nelsefirstUsage: " << usage_;
+        while (true)
+        {
+            std::cout << "Do you wish to define vehicle parameters? Type 'y' to yes, or 'n' to keep the previously defined parameters.\n";
+            std::cout << "Selection: ";
+            if (std::cin >> repeatparam && (repeatparam == 'y' || repeatparam == 'n'))
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+    }
 
-    std::cout << " -----------------------------------------------  START ----------------------------------------------- \n\n";
-    std::cout << "Do you wish to define vehicle parameters? Type 'y' to yes, or 'n' to keep the previously defined parameters.\n";
-    std::cout << "Selection: ";
-    std::cin >> repeatparam;
     if (repeatparam == 'y')
     {
-        // std::cout<<"\n------------------------------------------------------------------------------------------------------------\n";
+        //std::cout << "\nrepeatparam Usage: " << usage_;
+        //std::cout << "\nrepeatparam: " << repeatparam;
         std::cout << "---------------------------------------------- VEHICLE PARAMETERS ------------------------------------------ \n";
-        ;
-        std::cout << "\nType '1' to define all vehicle parameters in the console.\n";
-        std::cout << "Type '2' to change single selected parameters.\n";
-        std::cout << "Selection: ";
-        std::cin >> paramtype;
-        std::cout << "--------------------------------------------------------\n";
 
-        if (paramtype == 1)
+        if (usage_ == 0)
         {
-
-            std::cout << "\n------------------------ OPTION 1 SELECTED: ALL VEHICLE PARAMETERS DEFINITION -----------------------\n";
-
-            // Define the vehicle quarter sprung mass
-            getSprungMassFromUser();
-
-            // Define the suspension stiffness and the spring free length
-            getStiffnessFromUser();
-
-            // Define the Suspension Damping Ratio;
-            getDampingRatioFromUser();
-
-            // Define bumpstop stiffness
-            getBumpStopStiffnessFromUser();
-
-            // Define bumpstop stiffness
-            getReboundStopStiffnessFromUser();
-
-            // Define the vehicle quarter sprung mass
-            getUnsprungMassFromUser();
-
-            // Define the Tire Vertical Stiffness and SideWall Height
-            getTireStiffnessFromUser();
-
-            // Define the Tire Damping
-            getTireDampingFromUser();
+            paramtype = 1;
         }
-
-        else if (paramtype == 2)
+        else
         {
-            char repeatParam = 'y';
-            int param;
-            while (repeatParam == 'y')
+            //std::cout << usage_;
+            while (true)
             {
 
-                std::cout << "\nWhich parameter you wish to change? \n\n";
-                std::cout << "(1) Sprung Mass " << sim.getMassUnit();
-                std::cout << "\n(2) Suspension Stiffness and Spring Free Length " << sim.getStiffnessUnit();
-                std::cout << "\n(3) Suspension Damping Ratio " << sim.getDampingUnit();
-                // std::cout << "\n(4) Suspension Travel Limit " << sim.getDisplacementUnit();
-                // std::cout << "\n(5) Sprung Mass Static Height to the Tire " << sim.getDisplacementUnit();
-                std::cout << "\n(4) Bumpstop Stiffness " << sim.getStiffnessUnit();
-                std::cout << "\n(5) Rebound Stop Stiffness " << sim.getStiffnessUnit();
-                std::cout << "\n(6) Unsprung Mass " << sim.getMassUnit();
-                std::cout << "\n(7) Tire Vertical Stiffness and Sidewall Height" << sim.getStiffnessUnit();
-                std::cout << "\n(8) Tire Vertical Damping: " << sim.getDampingUnit();
-
-                std::cout << "\nSelection: ";
-                std::cin >> param;
-                std::cout << "-----------------------------------------------\n";
-
-                switch (param)
+                std::cout << "\nType [1] to define all vehicle parameters in the console.\n";
+                std::cout << "Type [2] to change only selected parameters.\n";
+                std::cout << "Selection: ";
+                if (std::cin >> paramtype && (paramtype == 1 || paramtype == 2))
                 {
-                case 1:
-                    getSprungMassFromUser();
-                    break;
-
-                case 2:
-                    getStiffnessFromUser();
-                    break;
-
-                case 3:
-                    getDampingRatioFromUser();
-                    break;
-
-                case 4:
-                    getBumpStopStiffnessFromUser();
-                    break;
-
-                case 5:
-                    getReboundStopStiffnessFromUser();
-                    break;
-
-                case 6:
-                    getUnsprungMassFromUser();
-                    break;
-
-                case 7:
-                    getTireStiffnessFromUser();
-                    break;
-                case 8:
-                    getTireDampingFromUser();
                     break;
                 }
+                else
+                {
+                    std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
+            }
+        }
+    }
 
+    else
+    {
+        paramtype = 0;
+    }
+
+    if (paramtype == 1)
+    {
+        //std::cout << "\nparamtype Usage: " << usage_;
+
+        std::cout << "\n------------------------------------  ALL VEHICLE PARAMETERS DEFINITION ------------------------------------\n";
+
+        // Define the vehicle quarter sprung mass
+        getSprungMassFromUser();
+
+        // Define the suspension stiffness and the spring free length
+        getStiffnessFromUser();
+
+        // Define the Suspension Damping Ratio;
+        getDampingRatioFromUser();
+
+        // Define bumpstop stiffness
+        getBumpStopStiffnessFromUser();
+
+        // Define bumpstop stiffness
+        getReboundStopStiffnessFromUser();
+
+        // Define the vehicle quarter sprung mass
+        getUnsprungMassFromUser();
+
+        // Define the Tire Vertical Stiffness and SideWall Height
+        getTireStiffnessFromUser();
+
+        // Define the Tire Damping
+        getTireDampingFromUser();
+    }
+
+    else if (paramtype == 2)
+    {
+        std::cout << "\n------------------------ OPTION 2 SELECTED: SELECT SINGLE PARAMETER DEFINITION -----------------------\n";
+        char repeatParam = 'y';
+        int param;
+        while (repeatParam == 'y')
+        {
+
+            std::cout << "\nWhich parameter you wish to change? \n";
+            std::cout << "\n(1) Sprung Mass " << sim.getMassUnit();
+            std::cout << "\n(2) Suspension Stiffness and Spring Free Length " << sim.getStiffnessUnit();
+            std::cout << "\n(3) Suspension Damping Ratio " << sim.getDampingUnit();
+            std::cout << "\n(4) Bumpstop Stiffness " << sim.getStiffnessUnit();
+            std::cout << "\n(5) Rebound Stop Stiffness " << sim.getStiffnessUnit();
+            std::cout << "\n(6) Unsprung Mass " << sim.getMassUnit();
+            std::cout << "\n(7) Tire Vertical Stiffness and Sidewall Height" << sim.getStiffnessUnit();
+            std::cout << "\n(8) Tire Vertical Damping: " << sim.getDampingUnit();
+
+            while (true)
+            {
+                std::cout << "\nSelection: ";
+                if (std::cin >> param && (param >= 1 && param <= 8))
+                {
+                    break;
+                }
+                else
+                {
+                    std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
+                std::cout << "-----------------------------------------------\n";
+            }
+            switch (param)
+            {
+            case 1:
+                getSprungMassFromUser();
+                break;
+
+            case 2:
+                getStiffnessFromUser();
+                break;
+
+            case 3:
+                getDampingRatioFromUser();
+                break;
+
+            case 4:
+                getBumpStopStiffnessFromUser();
+                break;
+
+            case 5:
+                getReboundStopStiffnessFromUser();
+                break;
+
+            case 6:
+                getUnsprungMassFromUser();
+                break;
+
+            case 7:
+                getTireStiffnessFromUser();
+                break;
+            case 8:
+                getTireDampingFromUser();
+                break;
+            }
+
+            while (true)
+            {
                 std::cout << "\nWant to change other parameter? ('y' or 'n'): ";
-                std::cin >> repeatParam;
+                if (std::cin >> repeatParam && (repeatParam == 'y' || repeatParam == 'n'))
+                {
+                    break;
+                }
+                else
+                {
+                    std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
                 std::cout << "--------------------------------------------------\n";
             }
         }
-
-        else if (paramtype == 3)
-        {
-            /*userParam = paramtype;
-            car_.setSprungMass(120 * sim.getMassUnitScaling());
-            car_.setSpring(getStiffnessFromUser());
-            car_.setDamper(getDampingRatioFromUser());
-            car_.setUnsprungMass(20 * sim.getMassUnitScaling());
-            car_.setTireDamping(0);*/
-            // car_.setKBumpstop(1000 * sim.getStiffnessUnitScaling());
-            //  car_.setMaxTravel(100 * sim.getDisplacementUnitScaling());
-            // car_.setTireStiffness(90 * sim.getStiffnessUnitScaling());
-        }
-
-        // car_.setSpring(spring_);
-        // car_.setDamper(damper_);
     }
 }
 
@@ -433,11 +653,35 @@ void ModelBuilder::getSineRoadFromUser()
     double frequency;
     roadName_ = "Sine";
     std::cout << "\nSine Wave input method selected.";
-    std::cout << "\nDefine the Sine Wave Amplitude " << sim.getDisplacementUnit() << ": ";
-    std::cin >> amplitude; // meters
-    std::cout << "Define the sine frequency [Hz]: ";
-    std::cin >> frequency;
+    while (true)
+    {
+        std::cout << "\nDefine the Sine Wave Amplitude " << sim.getDisplacementUnit() << ": ";
+        if (std::cin >> amplitude)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
 
+    while (true)
+    {
+        std::cout << "\nDefine the sine frequency [Hz]: ";
+        if (std::cin >> frequency)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     road_ = std::make_unique<SineRoad>(amplitude, frequency);
 }
 
@@ -445,8 +689,20 @@ void ModelBuilder::getCurbRoadFromUser()
 {
     double height;
     std::cout << "\nCurb road input method selected.";
-    std::cout << "\nDefine Curb Height " << sim.getDisplacementUnit() << ": ";
-    std::cin >> height;
+    while (true)
+    {
+        std::cout << "\nDefine Curb Height " << sim.getDisplacementUnit() << ": ";
+        if (std::cin >> height)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     road_ = std::make_unique<CurbRoad>(height);
 }
 
@@ -457,12 +713,51 @@ void ModelBuilder::getSweptSineRoadFromUser()
     double amplitude;
     roadName_ = "Swept Sine";
     std::cout << "\nSwept Sine input method selected.";
-    std::cout << "\nDefine the start of frequency range [Hz]: ";
-    std::cin >> startingFrequency;
-    std::cout << "\nDefine the end of the frequency range [Hz]: ";
-    std::cin >> endingFrequency;
-    std::cout << "Define the Amplitude of the swept sine wave " << sim.getDisplacementUnit() << ": ";
-    std::cin >> amplitude;
+    while (true)
+    {
+        std::cout << "\nDefine the start of frequency range [Hz]: ";
+        if (std::cin >> startingFrequency)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
+    while (true)
+    {
+        std::cout << "\nDefine the end of the frequency range [Hz]: ";
+        if (std::cin >> endingFrequency)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
+    while (true)
+    {
+        std::cout << "\nDefine the Amplitude of the swept sine wave " << sim.getDisplacementUnit() << ": ";
+        if (std::cin >> amplitude)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
     road_ = std::make_unique<SweptSine>(amplitude, startingFrequency, endingFrequency);
 }
 
@@ -470,12 +765,37 @@ void ModelBuilder::getRampRoadFromUser()
 {
     double height;
     double inclination;
-    roadName_ = "Ramp";
     std::cout << "\nRamp Sequence input method selected.";
-    std::cout << "\nDefine the height of the ramp " << sim.getDisplacementUnit() << ": ";
-    std::cin >> height;
-    std::cout << "\nDefine the inclination of the ramp ";
-    std::cin >> inclination;
+    while (true)
+    {
+        std::cout << "\nDefine the height of the ramp " << sim.getDisplacementUnit() << ": ";
+        if (std::cin >> height)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
+    while (true)
+    {
+        std::cout << "\nDefine the inclination of the ramp: ";
+        if (std::cin >> inclination)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
+
     road_ = std::make_unique<RampRoad>(height, inclination);
 }
 
@@ -487,21 +807,71 @@ void ModelBuilder::getFileRoadFromUser()
     double windowSize;
     roadName_ = "File Import";
     std::cout << "\n\nImport File input method selected. File must have a displacement time signal with a time duration equal or greater than the simulation time.";
-    std::cout << "\nWrite the file name with the file extension. If file is in different folder than executable, provide file path.\n";
-    std::cout << "\nFile: ";
-    std::cin >> filename;
+
+    while (true)
+    {
+        std::cout << "\nWrite the file name with the file extension. If file is in different folder than executable, provide file path.\n";
+        std::cout << "\nFile: ";
+        if (std::cin >> filename)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid file name or file path." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     std::cout << "\n--------------------------------------------\n";
-    std::cout << "\nDefine the scaling of the signal. Type '1' if no scaling is desired.\n";
-    std::cout << "\nScaling: ";
-    std::cin >> scaling;
+    while (true)
+    {
+        std::cout << "\nDefine the scaling of the signal. Type '1' if no scaling is desired.\n";
+        std::cout << "\nScaling: ";
+        if (std::cin >> scaling)
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "Invalid input. Please enter a valid value." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     std::cout << "\n--------------------------------------------\n";
-    std::cout << "\nDo you wish to filter the signal (Moving Average Method)? Type 'y' or 'n': ";
-    std::cin >> filter;
+    while (true)
+    {
+        std::cout << "\nDo you wish to filter the signal (Moving Average Method)? Type 'y' or 'n': ";
+        if (std::cin >> filter && (filter == 'y' || filter == 'n'))
+        {
+            break;
+        }
+        else
+        {
+            std::cout << "\nInvalid input. Please enter a valid option." << std::endl;
+            std::cin.clear();
+            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        }
+    }
     if (filter == 'y')
     {
-        std::cout << "Define the window size [number of samples]: ";
-        std::cin >> windowSize;
+        while (true)
+        {
+            std::cout << "Define the window size [number of samples]: ";
+            if (std::cin >> windowSize)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
     }
+
     road_ = std::make_unique<FileRoad>(filename, filter, windowSize, scaling);
 }
 
@@ -513,69 +883,112 @@ void ModelBuilder::getSimParams()
     int inptype;
     int changeinp;
 
-    std::cout << "\n\n--------------------------------------- SIMULATION PARAMETERS -------------------------------------------- \n";
-    // std::cout<<"\nSIMULATION PARAMETERS:\n";
-    // std::cout<<"\nType '0' if you want to define simulation parameters in the console, type '1' if want to use the parameters in the code, \ntype '2' if want to keep parameters from last run.\n";
-    std::cout << "\n[1] Define simulation parameters in the console\n";
-    std::cout << "[2] Keep parameters from previous run. \n";
-    // std::cout<<"[3] Keep parameters from previous run.\n";
+    std::cout << "\n\n --------------------------------------------------- SIMULATION PARAMETERS ---------------------------------------------------- \n";
 
-    std::cout << "\nSelection: ";
-    std::cin >> inputsim;
-    std::cout << "\n--------------------------------------------\n";
-    if (inputsim == 3)
+    if (usage_ == 0)
     {
-
-        /* // Simulation Parameters
-          t_final= 2;
-          dt = 0.0001;
-          std::string input = "swept"; // Select input between "sine", "ramp", "swept", "custom" and "file".
-
-          // Sine Wave Input Parameters
-          A = 0.1; // meters
-          w_sin = 10; // Hz
-
-          // Ramp Input Parameters
-          height = 0.1;
-          inclination = 0.3;
-          sig = '=';
-
-          // Swept Sine Input Parameters
-          f_start = 0;
-          f_end = 20;
-          A_swp = 0.1;
-
-          // File import Parameters
-
-          filename  = "signal.csv"; // Enter filename. If file is in other path, provide address.
-          filter = 'y'; // Choose between "y" for yes, or "n" for no.
-          windowSize = 100; // Number of samples
-          scaling = 1; // Scales input signal from file. Default 1.0 for no scaling. */
+        inputsim = 1;
+    }
+    else
+    {
+        while (true)
+        {
+            std::cout << "\n[1] Define simulation parameters in the console.\n";
+            std::cout << "[2] Keep parameters from previous run. \n";
+            std::cout << "\nSelection: ";
+            if (std::cin >> inputsim && (inputsim == 1 || inputsim == 2))
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+        std::cout << "\n--------------------------------------------\n";
     }
 
-    else if (inputsim == 1)
+
+    if (inputsim == 1)
     {
         double simulationTime;
         double timeStepSize;
-        std::cout << "\nInsert Simulation Time [s]: ";
-        std::cin >> simulationTime;
+        while (true)
+        {
+            std::cout << "\nInsert Simulation Time [s]: ";
+            if (std::cin >> simulationTime)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
         sim.setSimTotalTime(simulationTime);
-        std::cout << "\nInsert Step Size [s]: ";
-        std::cin >> timeStepSize;
+        while (true)
+        {
+            std::cout << "\nInsert Step Size [s]: ";
+            if (std::cin >> timeStepSize && (timeStepSize <= simulationTime))
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid option. Time Step Size must be a number smaller than simulation time." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
         sim.setSimStepSize(timeStepSize);
-        std::cout << "\n--------------------------------------------";
-        std::cout << "\n[1] Define signal input type and its parameters.";
-        std::cout << "\n[2] Keep the same settings from last run.\n";
-        std::cout << "\nSelection: ";
-        std::cin >> changeinp;
+
+        if (usage_ == 0)
+        {
+            changeinp = 1;
+        }
+        else
+        {
+            while (true)
+            {
+                std::cout << "\n--------------------------------------------";
+                std::cout << "\n[1] Define signal input type and its parameters.";
+                std::cout << "\n[2] Keep the same settings from last run.\n";
+                std::cout << "\nSelection: ";
+                if (std::cin >> changeinp && (changeinp == 1 || changeinp == 2))
+                {
+                    break;
+                }
+                else
+                {
+                    std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
+            }
+        }
         std::cout << "\n--------------------------------------------";
 
         if (changeinp == 1)
         {
-
-            std::cout << "\nDefine Input Type: (1) Sine Wave     (2) Swept Sine      (3) Ramp       (4) Import Displacement Signal from File     (5) Curb Road\n";
-            std::cout << "Selection: ";
-            std::cin >> inptype;
+            while (true)
+            {
+                std::cout << "\nDefine Input Type: (1) Sine Wave     (2) Swept Sine      (3) Ramp       (4) Import Displacement Signal from File     (5) Curb Road\n";
+                std::cout << "Selection: ";
+                if (std::cin >> inptype && (inptype >= 1 && inptype <= 5))
+                {
+                    break;
+                }
+                else
+                {
+                    std::cout << "Invalid input. Please enter a valid option." << std::endl;
+                    std::cin.clear();
+                    std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+                }
+            }
             std::cout << "\n--------------------------------------------";
 
             if (inptype == 1)
@@ -600,8 +1013,5 @@ void ModelBuilder::getSimParams()
             }
         }
     }
-
-    else if (inputsim == 2)
-    {
-    }
+    usage_ = usage_ + 1;
 };
