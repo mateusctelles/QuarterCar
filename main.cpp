@@ -41,7 +41,6 @@ int main()
 
             if (repeat != 1 && repeat != 3)
             {
-                delete road;
                 break;
             }
         }
