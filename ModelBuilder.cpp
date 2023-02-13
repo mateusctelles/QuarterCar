@@ -210,9 +210,9 @@ void ModelBuilder::getTireStiffnessFromUser()
 
     tireSpring->setFreeLength(height * sim.getStiffnessUnitScaling());
     car_.setTireSpring(std::move(tireSpring));
-    //std::cout << "Car received Tire Stiffness: \n"              << car_.getTireSpring()->getStiffness(0) << std::endl;
-    //std::cout << "Car received Tire Sidewall Height: \n"              << car_.getTireSpring()->getFreeLength() << std::endl;
-    // return tireSpring_;
+    // std::cout << "Car received Tire Stiffness: \n"              << car_.getTireSpring()->getStiffness(0) << std::endl;
+    // std::cout << "Car received Tire Sidewall Height: \n"              << car_.getTireSpring()->getFreeLength() << std::endl;
+    //  return tireSpring_;
 }
 
 void ModelBuilder::getBumpStopStiffnessFromUser()
@@ -244,7 +244,7 @@ void ModelBuilder::getBumpStopStiffnessFromUser()
 
     bumpStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
     car_.setBumpStopSpring(std::move(bumpStopSpring));
-    //std::cout << "\nCar received Bump stop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0);
+    // std::cout << "\nCar received Bump stop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0);
 }
 
 void ModelBuilder::getReboundStopStiffnessFromUser()
@@ -267,7 +267,7 @@ void ModelBuilder::getReboundStopStiffnessFromUser()
     }
     reboundStopSpring->setStiffness(kStopper * sim.getStiffnessUnitScaling());
     car_.setReboundStopSpring(std::move(reboundStopSpring));
-    //std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
+    // std::cout << "\nCar received Rebound stop Stiffness: " << car_.getReboundStopSpring()->getStiffness(0);
 }
 
 void ModelBuilder::getStiffnessFromUser()
@@ -329,8 +329,8 @@ void ModelBuilder::getStiffnessFromUser()
 
         spring->setFreeLength(length * sim.getDisplacementUnitScaling());
         car_.setSpring(std::move(spring));
-        //std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
-        //std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
+        // std::cout << "\nCar received spring stiffness: " << car_.getSpring()->getStiffness(0);
+        // std::cout << "\nCar received spring free length: " << car_.getSpring()->getFreeLength();
     }
 
     else if (springType == 2)
@@ -352,7 +352,7 @@ void ModelBuilder::getStiffnessFromUser()
             }
         }
         spring->setStiffness(stiffness * sim.getStiffnessUnitScaling());
-        //std::cout << "\nCar received stiffness: " << spring->getStiffness(0);
+        // std::cout << "\nCar received stiffness: " << spring->getStiffness(0);
         car_.setSpring(std::move(spring));
     }
 }
@@ -469,12 +469,12 @@ void ModelBuilder::getVehicleParams()
 {
     if (usage_ == 0)
     {
-        //std::cout << "\nfirstUsage: " << usage_;
+        // std::cout << "\nfirstUsage: " << usage_;
         repeatparam = 'y';
     }
     else
     {
-        //std::cout << "\nelsefirstUsage: " << usage_;
+        // std::cout << "\nelsefirstUsage: " << usage_;
         while (true)
         {
             std::cout << "Do you wish to define vehicle parameters? Type 'y' to yes, or 'n' to keep the previously defined parameters.\n";
@@ -494,8 +494,8 @@ void ModelBuilder::getVehicleParams()
 
     if (repeatparam == 'y')
     {
-        //std::cout << "\nrepeatparam Usage: " << usage_;
-        //std::cout << "\nrepeatparam: " << repeatparam;
+        // std::cout << "\nrepeatparam Usage: " << usage_;
+        // std::cout << "\nrepeatparam: " << repeatparam;
         std::cout << "---------------------------------------------- VEHICLE PARAMETERS ------------------------------------------ \n";
 
         if (usage_ == 0)
@@ -504,7 +504,7 @@ void ModelBuilder::getVehicleParams()
         }
         else
         {
-            //std::cout << usage_;
+            // std::cout << usage_;
             while (true)
             {
 
@@ -532,7 +532,7 @@ void ModelBuilder::getVehicleParams()
 
     if (paramtype == 1)
     {
-        //std::cout << "\nparamtype Usage: " << usage_;
+        // std::cout << "\nparamtype Usage: " << usage_;
 
         std::cout << "\n------------------------------------  ALL VEHICLE PARAMETERS DEFINITION ------------------------------------\n";
 
@@ -730,6 +730,7 @@ void ModelBuilder::getSweptSineRoadFromUser()
         }
     }
 
+    sim.setFrequencyStart(startingFrequency);
     while (true)
     {
         std::cout << "\nDefine the end of the frequency range [Hz]: ";
@@ -744,6 +745,8 @@ void ModelBuilder::getSweptSineRoadFromUser()
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
     }
+
+    sim.setFrequencyEnd(endingFrequency);
 
     while (true)
     {
@@ -767,7 +770,14 @@ void ModelBuilder::getRampRoadFromUser()
 {
     double height;
     double inclination;
+    int type;
+    double inclinationRate;
     std::cout << "\nRamp Sequence input method selected.";
+    std::cout << "\nSelect desired type of Ramp event: \n[1] Equal ramps sequence.\n[2] One ramp to a constant height.  \n[3] Varying Inclination Ramps Sequence.";
+    std::cout<<"\n[4] Parabolic Ramps";
+    std::cout << "\nSelection: ";
+    std::cin >> type;
+
     while (true)
     {
         std::cout << "\nDefine the height of the ramp " << sim.getDisplacementUnit() << ": ";
@@ -782,23 +792,94 @@ void ModelBuilder::getRampRoadFromUser()
             std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
     }
-
-    while (true)
+    switch (type)
     {
-        std::cout << "\nDefine the inclination of the ramp: ";
-        if (std::cin >> inclination)
+    case 1:
+    case 2:
+        while (true)
         {
-            break;
+            std::cout << "\nDefine the inclination of the ramp: ";
+            if (std::cin >> inclination)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
         }
-        else
-        {
-            std::cout << "Invalid input. Please enter a valid value." << std::endl;
-            std::cin.clear();
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        }
-    }
 
-    road_ = std::make_unique<RampRoad>(height, inclination);
+        road_ = std::make_unique<RampRoad>(height, inclination, type);
+        break;
+
+    case 3:
+        while (true)
+        {
+            std::cout << "\nDefine starting inclination of the ramp: ";
+            if (std::cin >> inclination)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+
+        while (true)
+        {
+            std::cout << "\nDefine inclination rate of change (height/time)/time: ";
+            if (std::cin >> inclinationRate)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+        road_ = std::make_unique<RampRoad>(height, inclination, type, inclinationRate);
+        break;
+
+    case 4:
+        while (true)
+        {
+            std::cout << "\nDefine starting inclination of the ramp: ";
+            if (std::cin >> inclination)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+
+        while (true)
+        {
+            std::cout << "\nDefine inclination rate of change (height/time)/time: ";
+            if (std::cin >> inclinationRate)
+            {
+                break;
+            }
+            else
+            {
+                std::cout << "Invalid input. Please enter a valid value." << std::endl;
+                std::cin.clear();
+                std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+            }
+        }
+        road_ = std::make_unique<RampRoad>(height, inclination, type, inclinationRate);
+        break;
+    }
 }
 
 void ModelBuilder::getFileRoadFromUser()
@@ -911,7 +992,6 @@ void ModelBuilder::getSimParams()
         }
         std::cout << "\n--------------------------------------------\n";
     }
-
 
     if (inputsim == 1)
     {

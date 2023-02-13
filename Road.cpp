@@ -4,36 +4,40 @@
 #include <sstream>
 #include <algorithm>
 
-CurbRoad::CurbRoad(double height) : height(height){}
+CurbRoad::CurbRoad(double height) : height(height) {}
 
 std::vector<double> CurbRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
     std::cout << "\nCreating CurbRoad: Level 1";
-    std::cout<<"\nHeight defined: "<<height;
+    std::cout << "\nHeight defined: " << height;
     int numSteps = simulationTime / timeStepSize;
     double simPart;
     std::vector<double> roadLine(numSteps, 0.0);
-    for (int i=0; i<numSteps;i++)
+    for (int i = 0; i < numSteps; i++)
     {
-        simPart = (double) i/numSteps;
-        if (simPart <=0.25){
-            roadLine[i]=0;
-            //std::cout<<"\nCondition 1 met. <0.25 "<<simPart;
+        simPart = (double)i / numSteps;
+        if (simPart <= 0.25)
+        {
+            roadLine[i] = 0;
+            // std::cout<<"\nCondition 1 met. <0.25 "<<simPart;
         }
-        else if (simPart >0.25 && simPart<=0.50){
-            roadLine[i]=height;
-           // std::cout<<"\nCondition 2 met. 0.25> i <0.5 "<<simPart;
+        else if (simPart > 0.25 && simPart <= 0.50)
+        {
+            roadLine[i] = height;
+            // std::cout<<"\nCondition 2 met. 0.25> i <0.5 "<<simPart;
         }
-        else if (simPart >0.5 && simPart<=0.75){
-            roadLine[i]=0;
-           // std::cout<<"\nCondition 3 met. 0.5> i <0.75 "<<simPart;
+        else if (simPart > 0.5 && simPart <= 0.75)
+        {
+            roadLine[i] = 0;
+            // std::cout<<"\nCondition 3 met. 0.5> i <0.75 "<<simPart;
         }
-        else if (simPart >0.75 && simPart<=1.00){
-            roadLine[i]=height;
-            //std::cout<<"\nCondition 4 met. 0.75> i <1.0 "<<simPart;
-        }   
+        else if (simPart > 0.75 && simPart <= 1.00)
+        {
+            roadLine[i] = height;
+            // std::cout<<"\nCondition 4 met. 0.75> i <1.0 "<<simPart;
+        }
     }
-    std::cout<<"\nRoad: Curb Road Calculated!";
+    std::cout << "\nRoad: Curb Road Calculated!";
     return roadLine;
 }
 
@@ -59,38 +63,101 @@ SweptSine::SweptSine(double amplitude, double freq1, double freq2) : amplitude_(
 
 std::vector<double> SweptSine::CalcRoad(double simulationTime, double timeStepSize)
 {
-    std::cout << "\nCalculating SweptSine Road with the frequency range between "<<frequencyStart <<" - "<< frequencyEnd<< std::endl;
+    std::cout << "\nCalculating SweptSine Road with the frequency range between " << frequencyStart << " - " << frequencyEnd << std::endl;
     int numSteps = simulationTime / timeStepSize;
     std::vector<double> roadLine(numSteps, 0.0);
     for (int i = 0; i < numSteps - 1; i++)
     {
         double time = i * timeStepSize;
         double fcurr = frequencyStart + (frequencyEnd - frequencyStart) * time / simulationTime;
-        double sample = amplitude_ * sin(2 *M_PI * fcurr * time);
+        double sample = amplitude_ * sin(M_PI * fcurr * time);
+        frequencyVector.push_back(fcurr);
         roadLine[i] = sample;
     }
 
     return roadLine;
 }
 
-RampRoad::RampRoad(double heightIn, double inclinationIn) : height_(heightIn), inclination_(inclinationIn) {}
-
+RampRoad::RampRoad(double heightIn, double inclinationIn, int type, double inclinationRate) : height_(heightIn), inclination_(inclinationIn), type_(type), inclinationRate_(inclinationRate) {}
+RampRoad::RampRoad(double heightIn, double inclinationIn, int type) : height_(heightIn), inclination_(inclinationIn), type_(type){};
 std::vector<double> RampRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
 
     int numSteps = simulationTime / timeStepSize;
     std::vector<double> roadLine(numSteps, 0.0);
-    for (int i = 0; i < numSteps - 1; i++)
+
+    switch (type_)
     {
-        if (roadLine[i] < height_)
+    case 1:
+        for (int i = 0; i < numSteps - 1; i++)
         {
-            roadLine[i + 1] = roadLine[i] + inclination_*height_ * timeStepSize;
-            //std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+
+            if (roadLine[i] < height_)
+            {
+                roadLine[i + 1] = roadLine[i] + inclination_ * height_ * timeStepSize;
+                // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
+            else
+            {
+                roadLine[i + 1] = 0;
+                // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
         }
-        else
+    case 2:
+        for (int i = 0; i < numSteps - 1; i++)
         {
-            roadLine[i+1] = height_;
-           // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            if (roadLine[i] < height_)
+            {
+                roadLine[i + 1] = roadLine[i] + inclination_ * height_ * timeStepSize;
+                // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
+            else
+            {
+                roadLine[i + 1] = height_;
+                // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
+        }
+
+    case 3:
+        for (int i = 0; i < numSteps - 1; i++)
+        {
+            if (roadLine[i] < height_)
+            {
+                roadLine[i + 1] = roadLine[i] + inclination_ * height_ * timeStepSize;
+                // std::cout<<"\nInclination (RISE): "<< inclination_;
+                //  std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
+            else
+            {
+                roadLine[i + 1] = 0;
+                inclination_ = inclination_ + inclinationRate_ * timeStepSize * i * inclinationRate_;
+                // std::cout<<"\nInclination (FALL): "<< inclination_;
+
+                // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
+        }
+
+    case 4:
+        int j;
+        for (int i = 0; i < numSteps - 1; i++)
+        {
+            if (roadLine[i] < height_)
+            {   
+                j=j+1;
+                inclination_ = j * j * timeStepSize * inclinationRate_;
+                roadLine[i + 1] = roadLine[i] + inclination_*inclination_ * height_ * timeStepSize;
+                // std::cout<<"\nInclination (RISE): "<< inclination_;
+                //  std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
+            else
+            {
+                j=0;
+                roadLine[i + 1] = 0;
+                //inclination_ = inclination_ + inclinationRate_ * timeStepSize * i * inclinationRate_;
+                // std::cout<<"\nInclination (FALL): "<< inclination_;
+
+                // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
+            }
         }
     }
 
@@ -118,12 +185,15 @@ FileRoad::FileRoad(std::string fileNameIn, char filterOptionIn, int windowSizeIn
 
             /* Uses the getline function to read the first field from the ss stringstream, up to the first comma.
             This reads the time value from the line string.*/
+            //std::cout << "\nExtracting time vector";
             std::getline(ss, field, ',');
+            //std::cout << "Time Extracted: " << field;
 
             // Converts the time field to a double and store it in the time vector
             file_time.push_back(std::stod(field));
 
             // Reads the position field and store it in the position vector
+            //std::cout << "\nExtracting Displacement Vector";
             std::getline(ss, field, ',');
             position.push_back(std::stod(field));
         }
@@ -163,12 +233,11 @@ void FileRoad::FilterMA()
     std::cout << "Signal Filtered Sucessfully\n\n";
 }
 
-
-std::vector<double> FileRoad:: SignalResample(const std::vector<double>& signal, double targetFrequency, double originalFrequency)
+std::vector<double> FileRoad::SignalResample(const std::vector<double> &signal, double targetFrequency, double originalFrequency)
 {
     int n = signal.size();
     std::vector<double> resampledSignal;
-    int frequencyRatio = originalFrequency/targetFrequency;
+    int frequencyRatio = originalFrequency / targetFrequency;
 
     for (int i = 0; i < n * frequencyRatio; i++)
     {
@@ -186,10 +255,26 @@ std::vector<double> FileRoad:: SignalResample(const std::vector<double>& signal,
 
 std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
-    int numSteps = simulationTime / timeStepSize;
-    std::vector<double> roadLine(numSteps, 0.0);
+
+    for (int i = 0; i < file_time.size(); i++)
+    {
+        std::cout << "\nFileTime: " << file_time[i];
+    }
+
+    int numSteps;
     double original_stepsize = file_time[2] - file_time[1];
-    double originalFrequency = 1/original_stepsize;
+    double originalFrequency = 1 / original_stepsize;
+    std::cout << "\nOriginal step size: " << original_stepsize << ", Time Step Size:" << timeStepSize;
+    if (original_stepsize > timeStepSize)
+    {
+        timeStepSize = original_stepsize;
+        std::cout << "\nInput signal Step Size is greater than user defined Simulation Step Size. This is not allowed.";
+        std::cout << "\nThe simulation will use the smallest possible step size, which is the same as the Input Signal Step Size: " << original_stepsize << " [s]" << std::endl;
+    }
+
+    numSteps = simulationTime / timeStepSize;
+
+    std::vector<double> roadLine(numSteps, 0.0);
     std::vector<double> rsmp_time(numSteps, 0.0);
     int file_nsamples = file_time.size();
 
@@ -223,19 +308,19 @@ std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSiz
     {
         FilterMA();
     }
-    
+
     // Resampling and scaling the signal
     std::cout << "Resampling signal . . ." << std::endl;
     std::cout << "The first " << total_ftime << " seconds of the imported signal will be used." << std::endl;
     std::cout << "The number of samples used before the resample is: " << file_nsamples_cut << std::endl;
 
-    //roadLine = SignalResample(position, numSteps);
-    
+    // roadLine = SignalResample(position, numSteps);
+
     for (int i = 0; i < numSteps; i++)
     {
         int factor = std::round(file_nsamples_cut / numSteps);
         int interval = i * factor;
-        roadLine[i] = position[interval]*scaling;
+        roadLine[i] = position[interval] * scaling;
         rsmp_time[i] = file_time[i * factor];
         // std::cout <<"Resampled Time: "<< rsmp_time[i] << "; Resampled Position: "<< roadLine[i] <<". Iteration "<< i<< std::endl;
     }

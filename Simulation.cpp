@@ -1,5 +1,6 @@
 #include "Simulation.hpp"
 #include <matplot/matplot.h>
+// #include <armadillo/armadillo.h>
 
 Simulation::Simulation(double t_final_In, double dtIn) : simulationTime_(t_final_In), timeStepSize_(dtIn) {}
 
@@ -12,13 +13,13 @@ void Simulation::ExportResults(int numSteps, Car &car)
     throw std::runtime_error("Could not open .csv file");
   }
   file << "Time, RoadLine, SprungMassDisp, Sprung Mass Acc,Unsprung Mass Acc,BumpStopForce,ReboundStop Force,StopperForce,Tire Force,Spring Force,Damper Force, Tire Damper Force, BumpStop Stiffness, ReboundStop Stiffness, availableBumpTravel, Relative Displacement, availableReboundTravel, ";
-  file << "roadDispRMS, sprungDispRMS, roadAccRMS, sprungAccRMS, dispRMSRatio, accRMSRatio" << std::endl;
+  file << "roadDispRMS, sprungDispRMS, roadAccRMS, sprungAccRMS, dispRMSRatio, accRMSRatio, PSD Amplitude, PSDFrequencies" << std::endl;
   for (int i = 0; i < numSteps; i++)
   {
     file << time[i] << "," << roadLine[i] << "," << sprungMassDisplacement[i] << "," << sprungMassAccG[i] << "," << unsprungMassAccG[i] << "," << bumpStopForce[i] << "," << reboundStopForce[i] << "," << stopperForce[i] << "," << tireElasticForce[i] << ","
          << springForce[i] << "," << damperForce[i] << "," << tireDamperForce[i] << "," << bumpStopStiffness[i] << "," << reboundStopStiffness[i] << "," << car.getBumpStopSpring()->getTriggerDistance() << ","
          << relativeDisplacementVector[i] << "," << car.getReboundStopSpring()->getTriggerDistance() << "," << roadLineDisplacementRMS[i] << "," << sprungMassDisplacementRMS[i] << "," << roadLineAccelerationRMS[i] << ","
-         << sprungMassDisplacementRMS[i] << "," << displacementRMSRatio[i] << "," << accelerationRMSRatio[i] << std::endl;
+         << sprungMassDisplacementRMS[i] << "," << displacementRMSRatio[i] << "," << accelerationRMSRatio[i]<<std::endl;
   }
 
   file.close();
@@ -64,6 +65,9 @@ void Simulation::InitializeVectors(int numSteps, Car &car)
   roadLineAccelerationRMS.resize(numSteps, 0.0);
   displacementRMSRatio.resize(numSteps, 0.0);
   accelerationRMSRatio.resize(numSteps, 0.0);
+
+  frequencies.resize(numSteps, 0.0);
+  accelerationPSD.resize(numSteps, 0.0);
 
   std::cout << "\nResponse Vectors Initialized\n";
 }
@@ -139,20 +143,67 @@ void Simulation::StaticEquilibrium(Car &car)
   std::cout << "\n---------------------------------------------------------------------------------------------------";
 }
 
+std::vector<double> Simulation::computePSD(const std::vector<double> &signal, int N, double sample_rate)
+{
+    std::cout<<"Calculating PSD. . .";
+    
+    // Allocate memory for the FFT input and output arrays
+    fftw_complex *in, *out;
+    in = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+    out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * N);
+
+    // Copy the time signal into the input array
+    for (int i = 0; i < N; i++) {
+        in[i][0] = signal[i];
+        in[i][1] = 0.0;
+    }
+
+    // Create the FFT plan
+    fftw_plan plan = fftw_plan_dft_1d(N, in, out, FFTW_FORWARD, FFTW_ESTIMATE);
+
+    // Execute the FFT
+    fftw_execute(plan);
+
+    // Calculate the power spectral density
+    accelerationPSD.resize(N/2 + 1);
+    frequencies.resize(N/2 + 1);
+    for (int i = 0; i < N/2 + 1; i++) {
+        accelerationPSD[i] = std::sqrt(out[i][0] * out[i][0] + out[i][1] * out[i][1]) / N;
+        frequencies[i] = i * sample_rate / N;
+    }
+
+    // Free the memory
+    fftw_free(in);
+    fftw_free(out);
+    fftw_destroy_plan(plan);
+
+    return accelerationPSD;
+}
+
 void Simulation::Simulate(Car &car, Road &road)
 {
   StaticEquilibrium(car);
 
   std::cout << "\nStarting Simulation: Stage 1";
 
-  int numSteps = simulationTime_ / timeStepSize_;
-  std::cout << "\n\nCalculated number of steps: " << numSteps;
+  // int numSteps = simulationTime_ / timeStepSize_;
 
   roadLine = std::move(road.CalcRoad(simulationTime_, timeStepSize_));
   // roadLine = road.CalcRoad(simulationTime_, timeStepSize_);
 
   std::cout << "\n\nRoad Calculated and moved to roadLine";
 
+  int numSteps = roadLine.size();
+  int simNumSteps = simulationTime_ / timeStepSize_;
+
+  std::cout << "\n\nBefore: time Step size is: " << timeStepSize_;
+  if (simNumSteps > numSteps)
+  {
+    timeStepSize_ = simulationTime_ / (double)numSteps;
+  }
+  std::cout << "\nAfter: time Step size is: " << timeStepSize_;
+
+  std::cout << "\n\nCalculated number of steps: " << numSteps;
   // Getting and calculating additional vehicle parameters.
   double tireStiffness = car.getSpring()->getStiffness(0);
   double suspStiffness = car.getSpring()->getStiffness(0);
@@ -232,6 +283,11 @@ void Simulation::Simulate(Car &car, Road &road)
 
     // Generating the time vector
     time[i + 1] = (i + 1) * timeStepSize_;
+    /*if (road.getRoadName() == "Swept Sine")
+    {
+      frequencyVector[i] = time[i] * (frequencyEnd_ - frequencyStart_) / simulationTime_;
+      // velocityVector[i] = frequencyVector[i]*
+    }*/
   }
 
   std::cout << "\nCalculating RMS outputs. . .";
@@ -247,27 +303,58 @@ void Simulation::Simulate(Car &car, Road &road)
   displacementRMSRatio = CalculateSignalRatio(roadLineDisplacementRMS, sprungMassDisplacementRMS);
   accelerationRMSRatio = CalculateSignalRatio(roadLineAccelerationRMS, sprungMassAccelerationRMS);
 
+  // Calculating the PSD
+  double sampleRate = 1/timeStepSize_;
+  accelerationPSD = computePSD(sprungMassAccG, numSteps, sampleRate);
+
   // Exporting resampled signal to a new .csv file
   ExportResults(numSteps, car);
 
   std::cout << "\n\nSimulation completed!";
 }
 
+/*std::string Simulation::SettingsBool(int setting)
+{
+  if (setting == 1)
+    return "YES";
+  else
+  {
+    return "NO";
+  }
+}
+
+int Simulation::GraphSetter(int &setting)
+{
+  int setting = setting+1;
+  if (setting!=1){
+    setting = 0;
+  }
+  return setting;
+}
+*/
 int Simulation::Graph()
 {
-
+  int graphCount = 0;
   int graphType = 1;
   int graphOpt;
   int togglePlot;
   int showSprungRel = 0;
   int showUnsprungRel = 0;
   int showRoadProfile = 1;
+  int showUnsprungAcc = 0;
+  int showSprungAcc = 1;
   int attenuation = 0;
+  int PSDPlot = 1;
+
+  // std::cout << "";
+
   while (true)
   {
+    graphCount = 1;
+    std::cout << "\nBuilding Plots. . .";
     if (graphType == 2)
     {
-      std::cout << "\nBuilding Plots. . .";
+      
 
       using namespace matplot;
       int wdt = 2; // Line Width
@@ -298,14 +385,16 @@ int Simulation::Graph()
       p2->line_width(wdt);
       p2->display_name("Sprung");
 
-      auto p20 = plot(time, relativeDisplacementVector);
-      p20->line_width(wdt);
-      p20->display_name("Difference");
+      if (showSprungRel == 1)
+      {
+        auto p20 = plot(time, relativeDisplacementVector);
+        p20->line_width(wdt);
+        p20->display_name("Difference");
+      }
       auto lgd = legend(on);
       lgd->font_name("Arial");
       xlabel("Time [s]");
       ylabel("Position " + displacementUnit_);
-
       auto ax2 = subplot(3, 2, 3);
       // title("Velocity");
       auto p3 = plot(time, unsprungMassVelocity);
@@ -349,21 +438,28 @@ int Simulation::Graph()
       auto ax3 = subplot(3, 2, 5);
       // ax3 -> size(500,500);
       // title("Acceleration");
-      auto p5 = plot(time, unsprungMassAccG);
-      p5->line_width(wdt);
-      p5->display_name("Unsprung");
-      hold(on);
+      if (showUnsprungAcc == 1)
+      {
+        // ax3 -> size(500,500);
+        // title("Acceleration");
+        auto p5 = plot(time, unsprungMassAccG);
+        p5->line_width(wdt);
+        p5->display_name("Unsprung");
+        hold(on);
+      }
 
-      auto p6 = plot(time, sprungMassAccG);
-      p6->line_width(wdt);
-      p6->display_name("Sprung");
-      auto lgd3 = legend(on);
-      lgd3->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Acceleration " + accelerationUnit_);
-      show();
+      if (showSprungAcc == 1)
+      {
+        auto p6 = plot(time, sprungMassAccG);
+        p6->line_width(wdt);
+        p6->display_name("Sprung");
+        auto lgd3 = legend(on);
+        lgd3->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Acceleration " + accelerationUnit_);
+        show();
+      }
     }
-
     else if (graphType == 1)
     {
 
@@ -436,27 +532,46 @@ int Simulation::Graph()
         ylabel("Position " + displacementUnit_);
 
         auto ax0 = subplot(3, 2, 0);
-        title("Attenuation ");
-        if (attenuation == 1)
+
+        if (PSDPlot == 0)
         {
-          auto p0 = plot(time, displacementRMSRatio);
-          p0->line_width(wdt);
-          p0->display_name("Displacement Attenuation");
-          auto lgd0 = legend(on);
-          lgd0->font_name("Arial");
-          xlabel("Time [s]");
-          ylabel("Displacement RMS Ratio [%]");
-          hold(on);
+
+          if (attenuation == 1)
+          {
+            title("Attenuation ");
+            auto p0 = plot(time, displacementRMSRatio);
+            p0->line_width(wdt);
+            p0->display_name("Displacement Attenuation");
+            auto lgd0 = legend(on);
+            lgd0->font_name("Arial");
+            xlabel("Time [s]");
+            ylabel("Displacement RMS Ratio [%]");
+            hold(on);
+          }
+          else
+          {
+            title("Attenuation ");
+            auto p01 = plot(time, accelerationRMSRatio);
+            p01->line_width(wdt);
+            p01->display_name("Acceleration Attenuation");
+            auto lgd01 = legend(on);
+            lgd01->font_name("Arial");
+            xlabel("Time [s]");
+            ylabel("Acceleration RMS Ratio [%]");
+            hold(on);
+          }
         }
         else
         {
-          auto p01 = plot(time, accelerationRMSRatio);
+          title("PSD");
+          auto p01 = plot(frequencies, accelerationPSD);
           p01->line_width(wdt);
-          p01->display_name("Acceleration Attenuation");
+          p01->display_name("Sprung Mass Acceleration PSD");
           auto lgd01 = legend(on);
           lgd01->font_name("Arial");
-          xlabel("Time [s]");
-          ylabel("Acceleration RMS Ratio [%]");
+          xlabel("Frequency [Hz]");
+          ylabel("g²/Hz");
+          xlim({0, 25});
           hold(on);
         }
       }
@@ -502,21 +617,27 @@ int Simulation::Graph()
       ylabel("Force " + forceUnit_);
 
       auto ax3 = subplot(3, 2, 5);
-      // ax3 -> size(500,500);
-      // title("Acceleration");
-      auto p5 = plot(time, unsprungMassAccG);
-      p5->line_width(wdt);
-      p5->display_name("Unsprung");
-      hold(on);
+      if (showUnsprungAcc == 1)
+      {
 
-      auto p6 = plot(time, sprungMassAccG);
-      p6->line_width(wdt);
-      p6->display_name("Sprung");
-      auto lgd3 = legend(on);
-      lgd3->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Acceleration " + accelerationUnit_);
+        // ax3 -> size(500,500);
+        // title("Acceleration");
+        auto p5 = plot(time, unsprungMassAccG);
+        p5->line_width(wdt);
+        p5->display_name("Unsprung");
+        hold(on);
+      }
 
+      if (showSprungAcc == 1)
+      {
+        auto p6 = plot(time, sprungMassAccG);
+        p6->line_width(wdt);
+        p6->display_name("Sprung");
+        auto lgd3 = legend(on);
+        lgd3->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Acceleration " + accelerationUnit_);
+      }
       show();
     }
 
@@ -557,10 +678,14 @@ int Simulation::Graph()
         std::cout << "\n[2] Toggle on/off Tire Spring Travel visualization";
         std::cout << "\n[3] Toggle on/off Road Profile Displacement within Position plot.";
         std::cout << "\n[4] Toggle between Displacement RMS Ratio or Acceleration RMS Ratio";
-        std::cout << "\n[5] Toggle Plot Layout (Displacement-Centered / Forces-Centered)";
+        std::cout<< " \n[5] Toggle between PSD/RMS";
+        std::cout << "\n[6] Toggle Unsprung Mass Acceleration Visualization";
+        std::cout << "\n[7] Toggle Sprung Mass Acceleration Visualization";
+        std::cout << "\n[8] Toggle Plot Layout (Displacement-Centered / Forces-Centered)";
+
         std::cout << "\nSelection: ";
-        std::cout <<" \n------------------------------------------------------------------------";
-        if (std::cin >> togglePlot && (togglePlot >= 1 && togglePlot <= 5))
+
+        if (std::cin >> togglePlot && (togglePlot >= 1 && togglePlot <= 8))
         {
           break;
         }
@@ -571,6 +696,7 @@ int Simulation::Graph()
           std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
         }
       }
+      std::cout << " \n------------------------------------------------------------------------";
       switch (togglePlot)
       {
       case 1:
@@ -598,7 +724,28 @@ int Simulation::Graph()
         break;
 
       case 5:
-        graphType = 2;
+        showUnsprungAcc = showUnsprungAcc + 1;
+        if (showUnsprungAcc != 1)
+          showUnsprungAcc = 0;
+        break;
+
+      case 6:
+        showSprungAcc = showSprungAcc + 1;
+        if (showSprungAcc != 1)
+          showSprungAcc = 0;
+        break;
+
+      case 7:
+        PSDPlot = PSDPlot+1;
+        if (PSDPlot!=1)
+          PSDPlot = 0;
+        break;
+
+      case 8:
+        graphType = graphType + 1;
+        if (graphType != 2)
+          graphType = 1;
+        break;
       }
     }
     else if (graphOpt == 4)

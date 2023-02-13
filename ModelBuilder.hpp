@@ -72,15 +72,15 @@ private:
 
 public:
     ModelBuilder()=default;
-    Road* getRoad(){return road_.get();}
+    inline Road* getRoad(){return road_.get();}
     //~ModelBuilder(); 
     void unitsHandler();
     //void setModelUnit(double unit){unit_= unit;}
     //double getModelUnit(){return unit_;}
     void getVehicleParams();
     void getSimParams();
-    Car &getCar() {return car_;}
-    Simulation getSim(){return sim;}
+    inline Car &getCar() {return car_;}
+    inline Simulation getSim(){return sim;}
     void setCarProperties();
     void printAttributes();
     //Spring* getSpring() const;
