@@ -108,7 +108,7 @@ void ModelBuilder::unitsHandler()
 void ModelBuilder::printAttributes()
 {
 
-    std::cout << "\n\n===================================== DEFINED MODEL PARAMETERS =====================================\n\n";
+    std::cout << "\n\n------------------------------------- DEFINED MODEL PARAMETERS -------------------------------------\n\n";
     std::cout << "Suspension Stiffness: " << car_.getSpring()->getStiffness(0);
     std::cout << "\nSuspension Damping Ratio: " << car_.getDamper()->getDampingRatio(0) << " | Damping Coefficient: " << car_.CalcSuspDamp(0) / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
     std::cout << "\nBumpstop Stiffness: " << car_.getBumpStopSpring()->getStiffness(0) / sim.getStiffnessUnitScaling() << " " << sim.getStiffnessUnit();
@@ -117,8 +117,8 @@ void ModelBuilder::printAttributes()
     std::cout << "\nTire Damping: " << car_.getTireDamper()->getDampingCoefficient() / sim.getDampingUnitScaling() << " " << sim.getDampingUnit();
     std::cout << "\nSprung Mass: " << car_.getSprungMass() / sim.getMassUnitScaling() << " " << sim.getMassUnit();
     std::cout << "\nUnsprung Mass: " << car_.getUnsprungMass() / sim.getMassUnitScaling() << " " << sim.getMassUnit();
-    std::cout << "\nRide Frequency: " << car_.CalcRideFreq() << " [Hz]";
-    std::cout << "\n====================================================================================================\n";
+    std::cout << "\nRide Frequency: " << car_.CalcRideFreq() << " [Hz]\n";
+    //std::cout << "\n====================================================================================================\n";
 }
 
 void ModelBuilder::getSprungMassFromUser()

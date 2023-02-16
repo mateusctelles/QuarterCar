@@ -5,9 +5,11 @@
 #include "Damper.hpp"
 #include "ModelBuilder.hpp"
 #include <memory>
+#include <vector>
 #include <iostream>
 
 void programStarter();
+
 
 int main()
 {
@@ -36,6 +38,8 @@ int main()
             // sim.StaticEquilibrium(car);
             sim.Simulate(car, *road);
             model.printAttributes();
+            sim.printStaticEquilibriumResults();
+            sim.printMetrics();
 
             repeat = sim.Graph();
 
@@ -59,7 +63,7 @@ void programStarter()
     std::cout << " **********************************************  QUARTER CAR SIMULATION SOFTWARE *********************************************** \n";
     std::cout << " *                                                                                                                             * \n";
     std::cout << " * By: Mateus Telles.                                                                                                          * \n";
-    std::cout << " * Version 1.0.0: Fev/07/2023.                                                                                                 * \n";
+    std::cout << " * Version 2.0.0: Fev/15/2023.                                                                                                 * \n";
     std::cout << " *                                                                                                                             * \n";
     std::cout << " ******************************************************************************************************************************* \n\n\n";
 }

@@ -17,7 +17,7 @@ class Simulation
 private:
     double simulationTime_;
     double timeStepSize_;
-    //Road *road_;
+    // Road *road_;
 
     std::vector<double> unsprungMassAcc;
     std::vector<double> unsprungMassAccG;
@@ -37,7 +37,12 @@ private:
     double unsprungMassInitialPosition;
     double suspSpringDeflection_;
     double tireSpringDeflection_;
-    //double tireSpringDeflection;
+    double availableBumpTravel_;
+    double availableReboundTravel_;
+    double abruptness;
+    double sprungMassAccRMS;
+    double airBorneTime;
+    // double tireSpringDeflection;
 
     std::vector<double> roadLine;
     std::vector<double> roadLineVelocity;
@@ -66,12 +71,36 @@ private:
     std::vector<double> sprungMassAccelerationRMS;
     std::vector<double> roadLineDisplacementRMS;
     std::vector<double> roadLineAccelerationRMS;
-    std::vector<double> displacementRMSRatio;
-    std::vector<double> accelerationRMSRatio;
+
     std::vector<double> frequencies;
     std::vector<double> cutFrequencies{0};
     std::vector<double> accelerationPSD;
     std::vector<double> cutPSD{0};
+
+    std::vector<double> sprungMassSnap;
+    std::vector<double> roadAccPSD;
+    std::vector<double> roadDisplacementPSD;
+
+    std::vector<double> displacementRMSRatio;
+    std::vector<double> accelerationRMSRatio;
+    std::vector<double> accelerationDelay;
+    std::vector<double> displacementDelay;
+    std::vector<double> sprungDispDelay;
+    std::vector<double> sprungDisplacementPSD;
+    std::vector<double> sprungMassJerk;
+
+    std::vector<double> displacementRMSRatioCompare;
+    std::vector<double> accelerationRMSRatioCompare;
+    std::vector<double> accelerationDelayCompare;
+    std::vector<double> displacementDelayCompare;
+    std::vector<double> sprungDispDelayCompare;
+    std::vector<double> sprungDisplacementPSDCompare;
+    std::vector<double> sprungMassJerkCompare;
+    std::vector<double> sprungMassSnapCompare;
+    std::vector<double> accelerationPSDCompare;
+    std::vector<double> sprungMassAccGCompare;
+    std::vector<double> sprungMassDisplacementCompare;
+    std::vector<double> sprungMassPositionCompare;
 
     double displacementUnitScaling_;
     double stiffnessUnitScaling_;
@@ -81,7 +110,7 @@ private:
     double forceUnitScaling_;
     double frequencyStart_;
     double frequencyEnd_;
-  
+
     std::string displacementUnit_;
     std::string stiffnessUnit_;
     std::string accelerationUnitSI_;
@@ -91,15 +120,23 @@ private:
     std::string velocityUnit_;
     std::string forceUnit_;
 
+    int numSteps_;
 
     std::vector<double> time;
 
-    //Methods called inside Simulate method.
+    // Methods called inside Simulate method.
+    double AirBorneTime();
     void ExportResults(int numSteps, Car &car);
     void StaticEquilibrium(Car &car);
     void InitializeVectors(int numSteps, Car &car);
-    std::vector<double> CalculateRMS(std::vector<double> &signal);
+    void CopyPlots();
+    std::vector<double> CalculateRMS(const std::vector<double> &psd);
     std::vector<double> CalculateSignalRatio(std::vector<double> &inputSignal, std::vector<double> &outputSignal);
+    void ExportMetrics();
+    double CalculateAbruptness(const std::vector<double>& sprungMassAcceleration, double duration);
+    double CalcTimeAccRMS(const std::vector<double>& data); 
+    void ClearCSV(const std::string& filename);
+    
 
 public:
     Simulation() = default;
@@ -107,46 +144,48 @@ public:
 
     inline void setSimTotalTime(double simulationTime) { simulationTime_ = simulationTime; }
     inline void setSimStepSize(double timeStepSize) { timeStepSize_ = timeStepSize; }
-    inline void setFrequencyStart(double frequencyStart=0) { frequencyStart_ = frequencyStart; }
-    inline void setFrequencyEnd(double frequencyEnd=0){frequencyEnd_=frequencyEnd;}
+    inline void setFrequencyStart(double frequencyStart = 0) { frequencyStart_ = frequencyStart; }
+    inline void setFrequencyEnd(double frequencyEnd = 0) { frequencyEnd_ = frequencyEnd; }
 
-    inline double getDisplacementUnitScaling(){return displacementUnitScaling_;}
-    inline double getStiffnessUnitScaling(){ return stiffnessUnitScaling_;}
-    inline double getMassUnitScaling(){return massUnitScaling_;}
-    inline double getGUnitScaling(){return gUnitScaling_;}
-    inline double getDampingUnitScaling(){return dampingUnitScaling_;}
+    inline double getDisplacementUnitScaling() { return displacementUnitScaling_; }
+    inline double getStiffnessUnitScaling() { return stiffnessUnitScaling_; }
+    inline double getMassUnitScaling() { return massUnitScaling_; }
+    inline double getGUnitScaling() { return gUnitScaling_; }
+    inline double getDampingUnitScaling() { return dampingUnitScaling_; }
 
-    inline double getSuspSpringDeflection(){return suspSpringDeflection_;}
-    inline double getTireSpringDeflection(){return tireSpringDeflection_;}
-    inline double getSprungMassDeflection(){return sprungMassDeflection_;}
+    inline double getSuspSpringDeflection() { return suspSpringDeflection_; }
+    inline double getTireSpringDeflection() { return tireSpringDeflection_; }
+    inline double getSprungMassDeflection() { return sprungMassDeflection_; }
 
-    inline std::string getDisplacementUnit(){return displacementUnit_;}
-    inline std::string getStiffnessUnit(){return stiffnessUnit_;}
-    inline std::string getMassUnit(){return massUnit_;}
-    inline std::string getDampingUnit(){return dampingUnit_;}
-    inline std::string getAccelerationUnitSI(){return accelerationUnitSI_;}
-    inline std::string getAccelerationUnit(){return accelerationUnit_;}
-    inline std::string getVelocityUnit(){return velocityUnit_;}
-    inline std::string getForceUnit(){return forceUnit_;}
+    inline std::string getDisplacementUnit() { return displacementUnit_; }
+    inline std::string getStiffnessUnit() { return stiffnessUnit_; }
+    inline std::string getMassUnit() { return massUnit_; }
+    inline std::string getDampingUnit() { return dampingUnit_; }
+    inline std::string getAccelerationUnitSI() { return accelerationUnitSI_; }
+    inline std::string getAccelerationUnit() { return accelerationUnit_; }
+    inline std::string getVelocityUnit() { return velocityUnit_; }
+    inline std::string getForceUnit() { return forceUnit_; }
 
-    void setDisplacementUnitScaling(double displacementUnitScaling){displacementUnitScaling_=displacementUnitScaling;}
-    void setStiffnessUnitScaling(double stiffnessUnitScaling){stiffnessUnitScaling_ = stiffnessUnitScaling;}
-    void setMassUnitScaling(double massUnitScaling){massUnitScaling_ = massUnitScaling;}
-    void setgUnitScaling(double gUnitScaling){gUnitScaling_ = gUnitScaling;}
-    void setDampingUnitScaling(double dampingUnitScaling){dampingUnitScaling_=dampingUnitScaling;}
-    void setForceUnitScaling(double forceUnitScaling){forceUnitScaling_=forceUnitScaling;}
-    
-    void setDisplacementUnit(std::string dispUnit){displacementUnit_= dispUnit;}
-    void setStiffnessUnit(std::string stiffUnit){stiffnessUnit_= stiffUnit;}
-    void setAccelerationUnit(std::string accUnit){accelerationUnit_= accUnit;}
-    void setMassUnit(std::string massUnit){massUnit_= massUnit;}
-    void setVelocityUnit(std::string velocityUnit){velocityUnit_ = velocityUnit;}
-    void setForceUnit(std::string forceUnit){forceUnit_ = forceUnit;}
-    void setDampingUnit(std::string dampingUnit){dampingUnit_=dampingUnit;}
+    void setDisplacementUnitScaling(double displacementUnitScaling) { displacementUnitScaling_ = displacementUnitScaling; }
+    void setStiffnessUnitScaling(double stiffnessUnitScaling) { stiffnessUnitScaling_ = stiffnessUnitScaling; }
+    void setMassUnitScaling(double massUnitScaling) { massUnitScaling_ = massUnitScaling; }
+    void setgUnitScaling(double gUnitScaling) { gUnitScaling_ = gUnitScaling; }
+    void setDampingUnitScaling(double dampingUnitScaling) { dampingUnitScaling_ = dampingUnitScaling; }
+    void setForceUnitScaling(double forceUnitScaling) { forceUnitScaling_ = forceUnitScaling; }
+
+    void setDisplacementUnit(std::string dispUnit) { displacementUnit_ = dispUnit; }
+    void setStiffnessUnit(std::string stiffUnit) { stiffnessUnit_ = stiffUnit; }
+    void setAccelerationUnit(std::string accUnit) { accelerationUnit_ = accUnit; }
+    void setMassUnit(std::string massUnit) { massUnit_ = massUnit; }
+    void setVelocityUnit(std::string velocityUnit) { velocityUnit_ = velocityUnit; }
+    void setForceUnit(std::string forceUnit) { forceUnit_ = forceUnit; }
+    void setDampingUnit(std::string dampingUnit) { dampingUnit_ = dampingUnit; }
 
     void Simulate(Car &car, Road &road);
-    std::vector<double> computePSD(const std::vector<double> &time_series, int N, double sample_time);
-
+    std::vector<double> ComputePSD(const std::vector<double> &time_series, int N, double sample_time);
+    std::vector<double> ComputeDelay(const std::vector<double> &PSD, const std::vector<double> &frequencies);
+    void printStaticEquilibriumResults();
+    void printMetrics();
 
     int Graph();
 };

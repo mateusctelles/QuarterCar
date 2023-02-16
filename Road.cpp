@@ -142,19 +142,19 @@ std::vector<double> RampRoad::CalcRoad(double simulationTime, double timeStepSiz
         for (int i = 0; i < numSteps - 1; i++)
         {
             if (roadLine[i] < height_)
-            {   
-                j=j+1;
+            {
+                j = j + 1;
                 inclination_ = j * j * timeStepSize * inclinationRate_;
-                roadLine[i + 1] = roadLine[i] + inclination_*inclination_ * height_ * timeStepSize;
+                roadLine[i + 1] = roadLine[i] + inclination_ * inclination_ * height_ * timeStepSize;
                 // std::cout<<"\nInclination (RISE): "<< inclination_;
                 //  std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
             }
             else
             {
-                j=0;
+                j = 0;
                 roadLine[i + 1] = 0;
-                //inclination_ = inclination_ + inclinationRate_ * timeStepSize * i * inclinationRate_;
-                // std::cout<<"\nInclination (FALL): "<< inclination_;
+                // inclination_ = inclination_ + inclinationRate_ * timeStepSize * i * inclinationRate_;
+                //  std::cout<<"\nInclination (FALL): "<< inclination_;
 
                 // std::cout<<"\nRoad Line: "<<roadLine[i]<<", height: "<< height_;
             }
@@ -185,17 +185,41 @@ FileRoad::FileRoad(std::string fileNameIn, char filterOptionIn, int windowSizeIn
 
             /* Uses the getline function to read the first field from the ss stringstream, up to the first comma.
             This reads the time value from the line string.*/
-            //std::cout << "\nExtracting time vector";
+            // std::cout << "\nExtracting time vector";
             std::getline(ss, field, ',');
-            //std::cout << "Time Extracted: " << field;
+            // std::cout << "Time Extracted: " << field;
 
             // Converts the time field to a double and store it in the time vector
-            file_time.push_back(std::stod(field));
+            try
+            {
+                file_time.push_back(std::stod(field));
+            }
+
+            catch (const std::invalid_argument &e)
+            {
+                std::cout << "Error: invalid argument - " << field << std::endl;
+            }
+            catch (const std::out_of_range &e)
+            {
+                std::cout << "Error: out of range - " << field << std::endl;
+            }
 
             // Reads the position field and store it in the position vector
-            //std::cout << "\nExtracting Displacement Vector";
+            // std::cout << "\nExtracting Displacement Vector";
             std::getline(ss, field, ',');
-            position.push_back(std::stod(field));
+
+            try
+            {
+                position.push_back(std::stod(field));
+            }
+            catch (const std::invalid_argument &e)
+            {
+                std::cout << "Error: invalid argument - " << field << std::endl;
+            }
+            catch (const std::out_of_range &e)
+            {
+                std::cout << "Error: out of range - " << field << std::endl;
+            }
         }
         myFile.close();
     }
@@ -204,6 +228,7 @@ FileRoad::FileRoad(std::string fileNameIn, char filterOptionIn, int windowSizeIn
         std::cout << "File could not be opened!\n\n\n"
                   << std::endl;
         throw std::runtime_error("ERROR: File could not be opened!\n\n\n");
+        std::system("pause");
     }
 }
 
@@ -256,10 +281,10 @@ std::vector<double> FileRoad::SignalResample(const std::vector<double> &signal, 
 std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSize)
 {
 
-    for (int i = 0; i < file_time.size(); i++)
+    /*for (int i = 0; i < file_time.size(); i++)
     {
         std::cout << "\nFileTime: " << file_time[i];
-    }
+    }*/
 
     int numSteps;
     double original_stepsize = file_time[2] - file_time[1];
@@ -286,7 +311,9 @@ std::vector<double> FileRoad::CalcRoad(double simulationTime, double timeStepSiz
     }
     else
     {
-        throw std::runtime_error("ERROR: The simulation time is longer than the time signal. This is currently not supported.\n\n\n");
+        throw std::runtime_error("ERROR: The simulation time is longer than the time signal. This is currently not supported.");
+        std::cout<<"\nThe input signal duration is: "<<last_ftime<<"which is smaller than "<<simulationTime<<".\n\n";
+        std::system("pause");
     }
     for (int i = 0; i < file_nsamples; i++)
     {

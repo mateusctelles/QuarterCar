@@ -13,12 +13,13 @@ void Simulation::ExportResults(int numSteps, Car &car)
     throw std::runtime_error("Could not open .csv file");
   }
   file << "Time, RoadLine, SprungMassDisp, Sprung Mass Acc,Unsprung Mass Acc,BumpStopForce,ReboundStop Force,StopperForce,Tire Force,Spring Force,Damper Force, Tire Damper Force, BumpStop Stiffness, ReboundStop Stiffness, availableBumpTravel, Relative Displacement, availableReboundTravel, ";
-  // file << "roadDispRMS, sprungDispRMS, roadAccRMS, sprungAccRMS, dispRMSRatio, accRMSRatio, PSDFrequencies" << std::endl;
+  file << "roadDispRMS, sprungDispRMS, roadAccRMS, sprungAccRMS, dispRMSRatio, accRMSRatio, PSDFrequencies" << std::endl;
   for (int i = 0; i < numSteps; i++)
   {
     file << time[i] << "," << roadLine[i] << "," << sprungMassDisplacement[i] << "," << sprungMassAccG[i] << "," << unsprungMassAccG[i] << "," << bumpStopForce[i] << "," << reboundStopForce[i] << "," << stopperForce[i] << "," << tireElasticForce[i] << ","
          << springForce[i] << "," << damperForce[i] << "," << tireDamperForce[i] << "," << bumpStopStiffness[i] << "," << reboundStopStiffness[i] << "," << car.getBumpStopSpring()->getTriggerDistance() << ","
-         << relativeDisplacementVector[i] << "," << car.getReboundStopSpring()->getTriggerDistance() << std::endl;
+         << relativeDisplacementVector[i] << "," << car.getReboundStopSpring()->getTriggerDistance() << "," << roadLineDisplacementRMS[i] << "," << sprungMassDisplacementRMS[i] << "," << roadLineAccelerationRMS[i] << ","
+         << sprungMassDisplacementRMS[i] << "," << displacementRMSRatio[i] << "," << accelerationRMSRatio[i] << frequencies[i] << std::endl;
   }
 
   file.close();
@@ -57,27 +58,12 @@ void Simulation::InitializeVectors(int numSteps, Car &car)
 
   bumpStopForce.resize(numSteps, 0.0);
   reboundStopForce.resize(numSteps, 0.0);
-  springForce.resize(numSteps, -gravity * car.getSprungMass());
+  springForce.resize(numSteps, 0.0);
   damperForce.resize(numSteps, 0.0);
-  tireElasticForce.resize(numSteps, -gravity * (car.getSprungMass() + car.getUnsprungMass()));
+  tireElasticForce.resize(numSteps, 0.0);
   tireDamperForce.resize(numSteps, 0.0);
 
   std::cout << "\nResponse Vectors Initialized\n";
-}
-
-double Simulation::AirBorneTime()
-{
-  double currentTime=0;
-  double totalTime=0;
-  for (int i = 0; i < tireElasticForce.size(); i++)
-  {
-    if (tireElasticForce[i] > -0.001)
-    {
-      totalTime = totalTime + timeStepSize_;
-      //std::cout << "\nTotal Airborne Time: " << totalTime<<" | Tire Force: "<<tireElasticForce[i];
-    }
-  }
-  return totalTime;
 }
 
 std::vector<double> Simulation::CalculateSignalRatio(std::vector<double> &input, std::vector<double> &output)
@@ -106,18 +92,6 @@ std::vector<double> Simulation::CalculateRMS(const std::vector<double> &psd)
   return rms;
 }
 
-double Simulation::CalcTimeAccRMS(const std::vector<double> &data)
-{
-  double sum = 0.0;
-  for (size_t i = 0; i < data.size(); i++)
-  {
-    sum += pow(data[i], 2);
-  }
-  double mean = sum / data.size();
-  double rms = sqrt(mean);
-  return rms;
-}
-
 void Simulation::StaticEquilibrium(Car &car)
 {
   std::cout << "\nCalculating static equilibrium configuration. . .";
@@ -132,46 +106,33 @@ void Simulation::StaticEquilibrium(Car &car)
 
   sprungMassInitialPosition = car.getSpring()->getFreeLength() + car.getTireSpring()->getFreeLength() - sprungMassDeflection_;
   unsprungMassInitialPosition = car.getTireSpring()->getFreeLength() - tireSpringDeflection_;
-  availableBumpTravel_ = car.getSpring()->getFreeLength() - suspSpringDeflection_;
-  availableReboundTravel_ = suspSpringDeflection_;
+  double availableBumpTravel = car.getSpring()->getFreeLength() - suspSpringDeflection_;
+  double availableReboundTravel = suspSpringDeflection_;
 
   // Setting Contact Spring parameters for tire and stoppers
-  // springPreload = car.getRideHeight()
 
-  car.getBumpStopSpring()->setTriggerDistance(-availableBumpTravel_);
-  car.getReboundStopSpring()->setTriggerDistance(-availableReboundTravel_);
+  car.getBumpStopSpring()->setTriggerDistance(-availableBumpTravel);
+  car.getReboundStopSpring()->setTriggerDistance(-availableReboundTravel);
   car.getTireSpring()->setTriggerDistance(tireSpringDeflection_);
-  // std::cout << "\n(Inside StaticEquilibrium Method) Available Bump Travel: " << car.getBumpStopSpring()->getTriggerDistance() << ", set by suspSpringDeflection: " << suspSpringDeflection_ << ", and getfreelenth: " << car.getSpring()->getFreeLength();
-  // std::cout << "\n(Inside StaticEquilibrium Method) Available Rebound Travel: " << car.getReboundStopSpring()->getTriggerDistance();
+  std::cout << "\n(Inside StaticEquilibrium Method) Available Bump Travel: " << car.getBumpStopSpring()->getTriggerDistance() << ", set by suspSpringDeflection: " << suspSpringDeflection_ << ", and getfreelenth: " << car.getSpring()->getFreeLength();
+  std::cout << "\n(Inside StaticEquilibrium Method) Available Rebound Travel: " << car.getReboundStopSpring()->getTriggerDistance();
   car.setStaticHeight(sprungMassInitialPosition);
   car.setTireStaticHeight(unsprungMassInitialPosition);
   car.getSpring()->setPreload(suspSpringDeflection_ * car.getSpring()->getStiffness(0));
   car.getTireSpring()->setPreload(tireSpringDeflection_ * car.getTireSpring()->getStiffness(0));
   int selection;
-  printStaticEquilibriumResults();
-}
 
-void Simulation::printStaticEquilibriumResults()
-{
-  std::cout << "\n---------------------------------------- STATIC EQUILIBRIUM -----------------------------------------";
-  std::cout << "\n\nCalculated static equilibrium configuration: ";
+  std::cout << "\n\n------------------------------------ STATIC EQUILIBRIUM -----------------------------------------";
+  std::cout << "\n\nCalculated static equilibrium configuration.";
   std::cout << "\nThe unsprung mass deflection was " << tireSpringDeflection_ << " " << getDisplacementUnit() << ", and the remaining tire travel is: " << unsprungMassInitialPosition << " " << getDisplacementUnit() << ".";
-  std::cout << "\nThe sprung mass deflection was " << sprungMassDeflection_ << " " << getDisplacementUnit() << ", and the current Ride Height is: " << sprungMassInitialPosition << " " << getDisplacementUnit() << "."
-            << ".\n\nThe available bump travel is : " << availableBumpTravel_ << " " << getDisplacementUnit() << ".";
-  std::cout << "\nThe available rebound travel is: " << availableReboundTravel_ << " " << getDisplacementUnit() << ".";
+  std::cout << "\nThe sprung mass deflection was " << sprungMassDeflection_ << " " << getDisplacementUnit() << ", and the current Ride Height is: " << sprungMassInitialPosition << getDisplacementUnit() << "."
+            << ".\n\nThe available bump travel is : " << availableBumpTravel << " " << getDisplacementUnit() << ".";
+  std::cout << "\nThe available rebound travel is: " << availableReboundTravel << " " << getDisplacementUnit() << ".";
   // std::cout << "\nSelect:\n[1] Proceed with the displayed configuration.\n[2] Set a Spring Preload change ride height.\nSelection: ";
   // std::cin >> selection;
-  // std::cout << "\n---------------------------------------------------------------------------------------------------";
+  std::cout << "\n---------------------------------------------------------------------------------------------------";
 }
 
-void Simulation::printMetrics()
-{
-  std::cout << "\n\n----------------------------------------- CALCULATED METRICS --------------------------------------------";
-  std::cout << "\n\nAbruptness: " << abruptness;
-  std::cout << "\nRMS Accelerometer Chassis: " << sprungMassAccRMS;
-  std::cout << "\nAir Borne Time [s]: " << airBorneTime;
-  std::cout << "\n\n---------------------------------------------------------------------------------------------------------\n\n";
-}
 std::vector<double> Simulation::ComputePSD(const std::vector<double> &signal, int N, double sample_rate)
 {
   std::cout << "\nCalculating PSD. . .";
@@ -274,7 +235,7 @@ void Simulation::Simulate(Car &car, Road &road)
   std::cout << "\nStarting Simulation: Level 2 - Calculations";
 
   // Calculating Outputs: Forces, Displacements, Velocities and Accelerations
-  for (int i = 1; i < numSteps - 1; i++)
+  for (int i = 0; i < numSteps - 1; i++)
   {
     // Calculating relative displacements and velocities.
     springDisplacement = sprungMassDisplacement[i] - unsprungMassDisplacement[i];
@@ -290,12 +251,6 @@ void Simulation::Simulate(Car &car, Road &road)
     springReboundLimit[i] = -car.getReboundStopSpring()->getTriggerDistance();
     bumpStopStiffness[i] = car.getBumpStopSpring()->getStiffness(springDisplacement);
     reboundStopStiffness[i] = car.getReboundStopSpring()->getStiffness(-springDisplacement);
-
-    // Zeroing to static position at first and last positions.
-    // tireElasticForce[0] = -gravity*(car.getSprungMass() +car.getUnsprungMass());
-    // tireElasticForce[numSteps-1]=tireElasticForce[0];
-    // springForce[0]= -gravity*car.getSprungMass();
-    // springForce[numSteps-1] = springForce[0];
 
     // Calculating all forces acting on system components in each iteration.
     bumpStopForce[i] = car.getBumpStopSpring()->getStiffness(springDisplacement) * (springDisplacement - car.getBumpStopSpring()->getTriggerDistance());
@@ -313,26 +268,24 @@ void Simulation::Simulate(Car &car, Road &road)
     unsprungMassVelocity[i + 1] = unsprungMassAcc[i] * timeStepSize_ + unsprungMassVelocity[i];
     sprungMassDisplacement[i + 1] = sprungMassVelocity[i] * timeStepSize_ + sprungMassDisplacement[i];
     unsprungMassDisplacement[i + 1] = unsprungMassVelocity[i] * timeStepSize_ + unsprungMassDisplacement[i];
-
-    roadLineVelocity[i] = (roadLine[i] - roadLine[i - 1]) / timeStepSize_;
-    roadLineAcceleration[i] = (roadLineVelocity[i] - roadLineVelocity[i - 1]) / timeStepSize_; // Velocity of ground displacement
-
+    roadLineVelocity[i + 1] = (roadLine[i + 1] - roadLine[i]) / timeStepSize_;
+    roadLineAcceleration[i + 2] = (roadLineVelocity[i + 2] - roadLineVelocity[i + 1]) / timeStepSize_; // Velocity of ground displacement
     sprungMassAccG[i] = sprungMassAcc[i] / (9.81 * gUnitScaling_);
     unsprungMassAccG[i] = unsprungMassAcc[i] / (9.81 * gUnitScaling_);
 
     // Calculating actual position considering static constants to be visualized on the position plots.
-    sprungMassPosition[i] = sprungMassDisplacement[i] + car.getStaticHeight();
-    unsprungMassPosition[i] = unsprungMassDisplacement[i] + car.getTireStaticHeight();
+    sprungMassPosition[i + 1] = sprungMassDisplacement[i + 1] + car.getStaticHeight();
+    unsprungMassPosition[i + 1] = unsprungMassDisplacement[i + 1] + car.getTireStaticHeight();
 
     sprungMassNetForce[i] = sprungMassAcc[i] * car.getSprungMass();
     unsprungMassNetForce[i] = unsprungMassAcc[i] * car.getUnsprungMass();
 
     // Calculating Sprung Mass Jerk and Snap (3rd and 4th order displacement derivatives)
     // std::cout << "\nCalculating Jerk Metric. . . | i: "<<i;
-    sprungMassJerk[i] = (sprungMassAccG[i] - sprungMassAccG[i - 1]) / timeStepSize_;
+    sprungMassJerk[i] = (sprungMassAccG[i + 1] - sprungMassAccG[i]) / timeStepSize_;
 
     // std::cout << "\nCalculating Snap Metric. . .| i: "<< i;
-    sprungMassSnap[i] = sprungMassJerk[i] * sprungMassDisplacement[i];
+    sprungMassSnap[i + 1] = (sprungMassJerk[i + 1] - sprungMassJerk[i]) / timeStepSize_;
 
     // Generating the time vector
     time[i + 1] = (i + 1) * timeStepSize_;
@@ -377,24 +330,9 @@ void Simulation::Simulate(Car &car, Road &road)
   sprungDispDelay = ComputeDelay(sprungDisplacementPSD, frequencies);
 
   // Exporting resampled signal to a new .csv file
-  ExportResults(numSteps, car);
-  abruptness = CalculateAbruptness(sprungMassAccG, simulationTime_);
-  sprungMassAccRMS = CalcTimeAccRMS(sprungMassAcc);
-  airBorneTime = AirBorneTime();
+  // ExportResults(20000, car);
 
   std::cout << "\n\nSimulation completed!";
-}
-
-double Simulation::CalculateAbruptness(const std::vector<double> &sprungMassAcceleration, double duration)
-{
-  double abruptness = 0.0;
-  for (int i = 1; i < sprungMassAcceleration.size(); i++)
-  {
-    double deltaAcceleration = sprungMassAcceleration[i] - sprungMassAcceleration[i - 1];
-    abruptness += abs(deltaAcceleration);
-  }
-  abruptness /= duration;
-  return abruptness;
 }
 
 std::vector<double> Simulation::ComputeDelay(const std::vector<double> &PSD, const std::vector<double> &frequencies)
@@ -411,16 +349,10 @@ std::vector<double> Simulation::ComputeDelay(const std::vector<double> &PSD, con
   return delayVector;
 }
 
-void Simulation::ClearCSV(const std::string &filename)
-{
-  std::ofstream ofs(filename, std::ios::out | std::ios::trunc);
-  ofs.close();
-}
-
 int Simulation::Graph()
 {
   int graphCount = 0;
-  int graphType = 2;
+  int graphType = 1;
   int graphOpt;
   int togglePlot;
   int showSprungRel = 0;
@@ -428,24 +360,11 @@ int Simulation::Graph()
   int showRoadProfile = 1;
   int showUnsprungAcc = 0;
   int showSprungAcc = 1;
-  int showUnsprungDisp = 0;
-  int showUnsprungPos = 0;
   int attenuation = 0;
   int PSDPlot = 1;
   int metrics = 1;
   double xFreqLim = 25;
   char keepPlot = 'y';
-  char deleteCSV = 'n';
-
-  if (keepPlot == 'y')
-  {
-    std::cout << "\nDo you want to use the last saved results for comparison? (y/n). \n\nIf this is a different event, it is recommended to select 'n'.\nSelection: ";
-    std::cin >> deleteCSV;
-    if (deleteCSV == 'n')
-    {
-      ClearCSV("MetricsOutput.csv");
-    }
-  }
 
   // std::cout << "";
 
@@ -464,7 +383,7 @@ int Simulation::Graph()
       h->name("Quarter Car Metrics"); // Figure Name
       h->size(1900, 950);             // Figure Size
 
-      auto ax0 = subplot(2, 2, 0);
+      auto ax0 = subplot(3, 2, 0);
       title("RMS Gain: Acceleration");
       auto p0 = plot(frequencies, accelerationRMSRatio);
       p0->line_width(wdt);
@@ -479,7 +398,7 @@ int Simulation::Graph()
       ylabel("RMS Gain - Sprung Mass Acc");
       xlim({0, xFreqLim});
 
-      auto ax1 = subplot(2, 2, 1);
+      auto ax1 = subplot(3, 2, 1);
       // title("Vertical Position");
       auto p1 = plot(frequencies, accelerationDelay);
       //->display_name("Unsprung");
@@ -495,7 +414,7 @@ int Simulation::Graph()
       xlabel("Frequency [Hz]");
       ylabel("Sprung Mass Delay [g²/Hz²]");
 
-      auto ax2 = subplot(2, 2, 3);
+      auto ax2 = subplot(3, 2, 3);
       // title("Velocity");
       auto p33 = plot(time, sprungMassJerk);
       p33->line_width(wdt);
@@ -509,7 +428,7 @@ int Simulation::Graph()
       xlabel("Time [s]");
       ylabel("Sprung Mass Jerk [g/s]");
 
-      auto forces = subplot(2, 2, 2);
+      auto forces = subplot(3, 2, 2);
       title("RMS Gain: Displacement");
       auto p7 = plot(frequencies, displacementRMSRatio);
       p7->line_width(wdt);
@@ -524,7 +443,7 @@ int Simulation::Graph()
       ylabel("RMS Gain - Sprung Mass Disp");
       xlim({0, xFreqLim});
 
-      /*auto ax3 = subplot(3, 2, 5);
+      auto ax3 = subplot(3, 2, 5);
       auto p5 = plot(time, sprungMassSnap);
       p5->line_width(wdt);
       p5->display_name("Current Metrics ");
@@ -535,7 +454,7 @@ int Simulation::Graph()
       auto lgd3 = legend(on);
       lgd3->font_name("Arial");
       xlabel("Time [s]");
-      ylabel("Snap [g/s²]");*/
+      ylabel("Snap [g/s²]");
 
       /*auto ax30 = subplot(3, 2, 6);
       auto p50 = plot(time, sprungMassSnap);
@@ -573,24 +492,14 @@ int Simulation::Graph()
 
       auto ax1 = subplot(3, 2, 1);
       // title("Vertical Position");
+      auto p1 = plot(time, unsprungMassDisplacement);
+      //->display_name("Unsprung");
+      p1->line_width(wdt);
+      p1->display_name("Unsprung");
+      hold(on);
       auto p2 = plot(time, sprungMassDisplacement);
       p2->line_width(wdt);
-      p2->display_name("Sprung: Current");
-      hold(on);
-      auto p21 = plot(time, sprungMassDisplacementCompare);
-      p21->line_width(wdt);
-      p21->display_name("Sprung: Previous");
-      hold(on);
-      std::cout << "showUnsprungDisp: " << showUnsprungDisp;
-      if (showUnsprungDisp == 1)
-      {
-        std::cout << "Showing unsprung mass disp.";
-        auto p41 = plot(time, unsprungMassDisplacement);
-        //->display_name("Unsprung");
-        p41->line_width(wdt);
-        p41->display_name("Unsprung");
-        hold(on);
-      }
+      p2->display_name("Sprung");
 
       if (showSprungRel == 1)
       {
@@ -598,7 +507,6 @@ int Simulation::Graph()
         p20->line_width(wdt);
         p20->display_name("Difference");
       }
-
       auto lgd = legend(on);
       lgd->font_name("Arial");
       xlabel("Time [s]");
@@ -650,9 +558,9 @@ int Simulation::Graph()
       {
         // ax3 -> size(500,500);
         // title("Acceleration");
-        auto p51 = plot(time, unsprungMassAccG);
-        p51->line_width(wdt);
-        p51->display_name("Unsprung");
+        auto p5 = plot(time, unsprungMassAccG);
+        p5->line_width(wdt);
+        p5->display_name("Unsprung");
         hold(on);
       }
 
@@ -688,28 +596,21 @@ int Simulation::Graph()
         p0->display_name("2D Road");
         auto lgd0 = legend(on);
         lgd0->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Displacement " + displacementUnit_);
+        hold(on);
       }
 
       auto ax1 = subplot(3, 2, {2, 4});
       // title("Vertical Position");
+      auto p1 = plot(time, unsprungMassPosition);
+      //->display_name("Unsprung");
+      p1->line_width(wdt);
+      p1->display_name("Unsprung");
+      hold(on);
       auto p2 = plot(time, sprungMassPosition);
       p2->line_width(wdt);
-      p2->display_name("Sprung: Current");
-      xlabel("Time [s]");
-      ylabel("Displacement " + displacementUnit_);
-      hold(on);
-      auto p27 = plot(time, sprungMassPositionCompare);
-      p27->line_width(wdt);
-      p27->display_name("Sprung: Previous");
-      hold(on);
-      if (showUnsprungDisp == 1)
-      {
-        std::cout << "Plot Type1: showUnsprungPos: " << showUnsprungDisp;
-        auto p188 = plot(time, unsprungMassPosition);
-        //->display_name("Unsprung");
-        p188->line_width(wdt);
-        p188->display_name("Unsprung");
-      }
+      p2->display_name("Sprung");
 
       char showDiff = 'y';
 
@@ -835,6 +736,16 @@ int Simulation::Graph()
       ylabel("Force " + forceUnit_);
 
       auto ax3 = subplot(3, 2, 5);
+      if (showUnsprungAcc == 1)
+      {
+
+        // ax3 -> size(500,500);
+        // title("Acceleration");
+        auto p5 = plot(time, unsprungMassAccG);
+        p5->line_width(wdt);
+        p5->display_name("Unsprung");
+        hold(on);
+      }
 
       if (showSprungAcc == 1)
       {
@@ -849,17 +760,7 @@ int Simulation::Graph()
         lgd35->font_name("Arial");
         xlabel("Time [s]");
         ylabel("Acceleration " + accelerationUnit_);
-        hold(on);
       }
-
-      if (showUnsprungAcc == 1)
-      {
-        std::cout << "showUnsprungAcc: " << showUnsprungAcc;
-        auto p5 = plot(time, unsprungMassAccG);
-        p5->line_width(wdt);
-        p5->display_name("Unsprung");
-      }
-
       show();
     }
 
@@ -914,16 +815,15 @@ int Simulation::Graph()
         std::cout << "\n[2] Toggle on/off Tire Spring Travel visualization";
         std::cout << "\n[3] Toggle on/off Road Profile Displacement within Position plot.";
         std::cout << "\n[4] Toggle between Displacement RMS Ratio or Acceleration RMS Ratio";
-        std::cout << " \n[5] Toggle Unsprung Mass Acceleration Visualization";
-        std::cout << "\n[6] Toggle Sprung Mass Acceleration Visualization";
-        std::cout << "\n[7] Toggle PSDPlot Visualization";
-        std::cout << "\n[8] Toggle Unsprung Mass Displacement/Position Visualization";
-        std::cout << "\n[9] Set Limit of the X Axis for frequency domain metrics";
-        std::cout << "\n[10] Toggle Plot Layout (Displacement-Centered / Forces-Centered)";
+        std::cout << " \n[5] Toggle between PSD/RMS";
+        std::cout << "\n[6] Toggle Unsprung Mass Acceleration Visualization";
+        std::cout << "\n[7] Toggle Sprung Mass Acceleration Visualization";
+        std::cout << "\n[8] Set Limit of the X Axis for frequency domain metrics";
+        std::cout << "\n[9] Toggle Plot Layout (Displacement-Centered / Forces-Centered)";
 
         std::cout << "\nSelection: ";
 
-        if (std::cin >> togglePlot && (togglePlot >= 1 && togglePlot <= 10))
+        if (std::cin >> togglePlot && (togglePlot >= 1 && togglePlot <= 9))
         {
           break;
         }
@@ -980,18 +880,11 @@ int Simulation::Graph()
         break;
 
       case 8:
-        showUnsprungDisp = showUnsprungDisp + 1;
-        if (showUnsprungDisp != 1)
-          showUnsprungDisp = 0;
-        showUnsprungPos = 0;
-        break;
-
-      case 9:
         std::cout << "\nSelect the end frequency [Hz] of the X Axis: ";
         std::cin >> xFreqLim;
         break;
 
-      case 10:
+      case 9:
         graphType = graphType + 1;
         if (graphType != 2)
           graphType = 1;
@@ -1017,11 +910,9 @@ void Simulation::CopyPlots()
   displacementDelayCompare.resize(0, 0);
   sprungDispDelayCompare.resize(0, 0);
   sprungDisplacementPSDCompare.resize(0, 0);
-  accelerationPSDCompare.resize(0, 0);
+  accelerationPSDCompare.resize(0,0);
   sprungMassJerkCompare.resize(0, 0);
-  sprungMassSnapCompare.resize(0, 0);
-  sprungMassDisplacementCompare.resize(0, 0);
-  sprungMassPositionCompare.resize(0, 0);
+  sprungMassSnapCompare.resize(0,0);
 
   std::string line;
   std::string filename = "MetricsOutput.csv";
@@ -1041,9 +932,10 @@ void Simulation::CopyPlots()
     while (std::getline(myFile, line))
     {
       ss.str(line); // set the stringstream to the current line
-      i = i + 1;
+      
       if (i <= N)
       {
+        i=i+1;
         // skip the first column
         std::getline(ss, field, ',');
 
@@ -1063,22 +955,16 @@ void Simulation::CopyPlots()
         std::getline(ss, field, ',');
         accelerationPSDCompare.push_back(std::stod(field));
       }
-
-      else
-      {
-        std::getline(ss, field, ',');
-        std::getline(ss, field, ',');
-        std::getline(ss, field, ',');
-        std::getline(ss, field, ',');
-        std::getline(ss, field, ',');
-        std::getline(ss, field, ',');
-      }
+      std::cout<<"\ni: "<<i;
+      std::getline(ss, field, ',');
+      std::cout<<", time: "<<field;
+      //time.push_back(std::stod(field));
 
       std::getline(ss, field, ',');
-      // time.push_back(std::stod(field));
-
-      std::getline(ss, field, ',');
+      std::cout<<", jerk: "<<field;
       sprungMassJerkCompare.push_back(std::stod(field));
+      
+
 
       std::getline(ss, field, ',');
       sprungMassSnapCompare.push_back(std::stod(field));
@@ -1086,14 +972,9 @@ void Simulation::CopyPlots()
       std::getline(ss, field, ',');
       sprungMassAccGCompare.push_back(std::stod(field));
 
-      std::getline(ss, field, ',');
-      sprungMassDisplacementCompare.push_back(std::stod(field));
-
-      std::getline(ss, field, ',');
-      sprungMassPositionCompare.push_back(std::stod(field));
-      // std::cout << "\nAcc: " << field;
-
       ss.clear();
+
+      
     }
     myFile.close();
   }
@@ -1119,7 +1000,7 @@ void Simulation::ExportMetrics()
     throw std::runtime_error("Could not open .csv file");
   }
 
-  fileMetrics << "Frequencies, AccelerationRMSRatio, DisplacementRMSRatio, AccelerationDelay,  DisplacementDelay, Acceleration PSD, Time, Sprung Mass Jerk, Sprung Mass Snap, Sprung Mass Acc G, Sprung Mass Displacement, Sprung Mass Position" << std::endl;
+  fileMetrics << "Frequencies, AccelerationRMSRatio, DisplacementRMSRatio, AccelerationDelay,  DisplacementDelay, Acceleration PSD, Time, Sprung Mass Jerk, Sprung Mass Snap, Sprung Mass Acc G" << std::endl;
 
   for (int i = 0; i < numSteps_; i++)
   {
@@ -1127,11 +1008,10 @@ void Simulation::ExportMetrics()
     {
       fileMetrics << frequencies[i] << "," << accelerationRMSRatio[i] << "," << displacementRMSRatio[i] << "," << accelerationDelay[i] << "," << sprungDispDelay[i] << "," << accelerationPSD[i] << ",";
     }
-    else
-    {
+    /*else{
       fileMetrics << 0 << "," << 0 << "," << 0 << "," << 0 << "," << 0 << "," << 0 << ",";
-    }
-    fileMetrics << time[i] << "," << sprungMassJerk[i] << "," << sprungMassSnap[i] << "," << sprungMassAccG[i] << "," << sprungMassDisplacement[i] << "," << sprungMassPosition[i] << std::endl;
+    }*/
+    fileMetrics << time[i] << "," << sprungMassJerk[i] << ","<< sprungMassSnap[i] << "," << sprungMassAccG[i] << std::endl;
   }
 
   fileMetrics.close();
