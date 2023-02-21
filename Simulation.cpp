@@ -67,14 +67,14 @@ void Simulation::InitializeVectors(int numSteps, Car &car)
 
 double Simulation::AirBorneTime()
 {
-  double currentTime=0;
-  double totalTime=0;
+  double currentTime = 0;
+  double totalTime = 0;
   for (int i = 0; i < tireElasticForce.size(); i++)
   {
     if (tireElasticForce[i] > -0.001)
     {
       totalTime = totalTime + timeStepSize_;
-      //std::cout << "\nTotal Airborne Time: " << totalTime<<" | Tire Force: "<<tireElasticForce[i];
+      // std::cout << "\nTotal Airborne Time: " << totalTime<<" | Tire Force: "<<tireElasticForce[i];
     }
   }
   return totalTime;
@@ -423,19 +423,57 @@ int Simulation::Graph()
   int graphType = 2;
   int graphOpt;
   int togglePlot;
-  int showSprungRel = 0;
-  int showUnsprungRel = 0;
+  int showSprungRel;
+  int showUnsprungRel;
   int showRoadProfile = 1;
-  int showUnsprungAcc = 0;
+  int showUnsprungAcc;
   int showSprungAcc = 1;
-  int showUnsprungDisp = 0;
-  int showUnsprungPos = 0;
+  int showUnsprungDisp;
+  int showUnsprungPos;
   int attenuation = 0;
   int PSDPlot = 1;
   int metrics = 1;
   double xFreqLim = 25;
   char keepPlot = 'y';
   char deleteCSV = 'n';
+  int config;
+  int wdt = 2;
+
+  std::cout << "\nSelect plotting config:";
+  std::cout << "\n[1] Profile 1: Unsprung Mass Acceleration [OFF]; Unsprung Mass Displacement [OFF]; Spring Deformation [OFF]; Tire Deformation [OFF];";
+  std::cout << "\n[2] Profile 2: Unsprung Mass Acceleration [ON]; Unsprung Mass Displacement [ON]; Spring Deformation [OFF]; Tire Deformation [OFF];";
+  std::cout << "\n[3] Custom Profile. Select configuration. ";
+  std::cout << "\nSelection: ";
+  std::cin >> config;
+
+  switch (config)
+  {
+
+  case 1:
+    showUnsprungDisp = 0;
+    showUnsprungAcc = 0;
+    showSprungRel = 0;
+    showUnsprungRel = 0;
+    break;
+
+  case 2:
+    showUnsprungDisp = 1;
+    showUnsprungAcc = 1;
+    showSprungRel = 0;
+    showUnsprungRel = 0;
+    break;
+
+  case 3:
+    std::cout << "\nDisplay Unsprung Mass Acceleration?  [0] OFF     [1] ON\nSelection: ";
+    std::cin >> showUnsprungAcc;
+    std::cout << "\nDisplay the Unsprung Mass Displacement?  [0] OFF     [1] ON\nSelection: ";
+    std::cin >> showUnsprungDisp;
+    std::cout << "\nDisplay the Suspension Spring Deformation?  [0] OFF     [1] ON\nSelection: ";
+    std::cin >> showSprungRel;
+    std::cout << "\nDisplay Tire Deformation?  [0] OFF     [1] ON\nSelection: ";
+    std::cin >> showUnsprungRel;
+    break;
+  }
 
   if (keepPlot == 'y')
   {
@@ -457,7 +495,7 @@ int Simulation::Graph()
 
     if (metrics == 1)
     {
-      std::cout << "\nBuilding Plots. . .";
+      std::cout << "\nBuilding Metric Plots. . .";
       using namespace matplot;
       int wdt = 2; // Line Width
       auto h = figure(true);
@@ -523,151 +561,211 @@ int Simulation::Graph()
       xlabel("Frequency [hz]");
       ylabel("RMS Gain - Sprung Mass Disp");
       xlim({0, xFreqLim});
-
-      /*auto ax3 = subplot(3, 2, 5);
-      auto p5 = plot(time, sprungMassSnap);
-      p5->line_width(wdt);
-      p5->display_name("Current Metrics ");
-      hold(on);
-      auto p6 = plot(time, sprungMassSnapCompare);
-      p6->line_width(wdt);
-      p6->display_name("Previous Metrics ");
-      auto lgd3 = legend(on);
-      lgd3->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Snap [g/s²]");*/
-
-      /*auto ax30 = subplot(3, 2, 6);
-      auto p50 = plot(time, sprungMassSnap);
-      p50->line_width(wdt);
-      p50->display_name("Sprung Mass Snap [g/²]");
-      hold(on);
-      auto lgd30 = legend(on);
-      lgd30->font_name("Arial");
-      xlabel("Frequency [Hz]");
-      ylabel("Acceleration " + accelerationUnit_);
-      xlim({0, 25});*/
       show();
     }
 
     if (graphType == 2)
     {
-      std::cout << "\nBuilding Plots. . .";
-      using namespace matplot;
-      int wdt = 2; // Line Width
-      auto h = figure(true);
-      h->name("Quarter Car"); // Figure Name
-      h->size(1900, 950);     // Figure Size
-
-      auto ax0 = subplot(3, 2, 0);
-      title("Input: ");
-
-      auto p0 = plot(time, roadLine);
-      p0->line_width(wdt);
-      p0->display_name("2D Road");
-      auto lgd0 = legend(on);
-      lgd0->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Displacement " + displacementUnit_);
-      hold(on);
-
-      auto ax1 = subplot(3, 2, 1);
-      // title("Vertical Position");
-      auto p2 = plot(time, sprungMassDisplacement);
-      p2->line_width(wdt);
-      p2->display_name("Sprung: Current");
-      hold(on);
-      auto p21 = plot(time, sprungMassDisplacementCompare);
-      p21->line_width(wdt);
-      p21->display_name("Sprung: Previous");
-      hold(on);
-      std::cout << "showUnsprungDisp: " << showUnsprungDisp;
-      if (showUnsprungDisp == 1)
       {
-        std::cout << "Showing unsprung mass disp.";
-        auto p41 = plot(time, unsprungMassDisplacement);
-        //->display_name("Unsprung");
-        p41->line_width(wdt);
-        p41->display_name("Unsprung");
+        std::cout << "\nBuilding General Output Plots. . .";
+        using namespace matplot;
+        int wdt = 2; // Line Width
+        auto h = figure(true);
+        h->name("Quarter Car"); // Figure Name
+        h->size(1900, 950);     // Figure Size
+
+        auto ax0 = subplot(3, 2, 0);
+        title("Input: ");
+
+        auto p0 = plot(time, roadLine);
+        p0->line_width(wdt);
+        p0->display_name("2D Road");
+        auto lgd0 = legend(on);
+        lgd0->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Displacement " + displacementUnit_);
         hold(on);
-      }
 
-      if (showSprungRel == 1)
-      {
-        auto p20 = plot(time, relativeDisplacementVector);
-        p20->line_width(wdt);
-        p20->display_name("Difference");
-      }
+        auto ax1 = subplot(3, 2, 1);
+        // title("Vertical Position");
+        auto p2 = plot(time, sprungMassDisplacement);
+        p2->line_width(wdt);
+        p2->display_name("Sprung: Current");
+        hold(on);
+        auto p21 = plot(time, sprungMassDisplacementCompare);
+        p21->line_width(wdt);
+        p21->display_name("Sprung: Previous");
+        hold(on);
+        // std::cout << "showUnsprungDisp: " << showUnsprungDisp;
+        if (showUnsprungDisp == 1)
+        {
+          // std::cout << "Showing unsprung mass disp.";
+          auto p41 = plot(time, unsprungMassDisplacement);
+          //->display_name("Unsprung");
+          p41->line_width(wdt);
+          p41->display_name("Unsprung");
+          hold(on);
+        }
 
-      auto lgd = legend(on);
-      lgd->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Position " + displacementUnit_);
-      auto ax2 = subplot(3, 2, 3);
-      // title("Velocity");
-      auto p3 = plot(time, unsprungMassVelocity);
-      p3->line_width(wdt);
-      p3->display_name("Unsprung");
-      hold(on);
-      auto p4 = plot(time, sprungMassVelocity);
-      p4->line_width(wdt);
-      p4->display_name("Sprung");
-      auto lgd2 = legend(on);
-      lgd2->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Velocity " + velocityUnit_);
+        if (showSprungRel == 1)
+        {
+          auto p20 = plot(time, relativeDisplacementVector);
+          p20->line_width(wdt);
+          p20->display_name("Difference");
+        }
 
-      auto forces = subplot(3, 2, {2, 4});
-      title("Forces");
+        auto lgd = legend(on);
+        lgd->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Position " + displacementUnit_);
+        auto ax2 = subplot(3, 2, 3);
+        // title("Velocity");
+        auto p3 = plot(time, unsprungMassVelocity);
+        p3->line_width(wdt);
+        p3->display_name("Unsprung");
+        hold(on);
+        auto p4 = plot(time, sprungMassVelocity);
+        p4->line_width(wdt);
+        p4->display_name("Sprung");
+        auto lgd2 = legend(on);
+        lgd2->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Velocity " + velocityUnit_);
 
-      auto p7 = plot(time, springForce);
-      p7->line_width(wdt);
-      p7->display_name("Spring Force");
-      hold(on);
+        auto forces = subplot(3, 2, {2, 4});
+        title("Forces");
 
-      auto p8 = plot(time, damperForce);
-      p8->line_width(wdt);
-      p8->display_name("Damper Force");
-      hold(on);
+        auto p7 = plot(time, springForce);
+        p7->line_width(wdt);
+        p7->display_name("Spring Force");
+        hold(on);
 
-      auto p9 = plot(time, stopperForce);
-      p9->line_width(wdt);
-      p9->display_name("Stopper Force");
-      hold(on);
+        auto p8 = plot(time, damperForce);
+        p8->line_width(wdt);
+        p8->display_name("Damper Force");
+        hold(on);
 
-      auto p10 = plot(time, tireElasticForce);
-      p10->line_width(wdt);
-      p10->display_name("Tire Force");
-      auto lgd4 = legend(on);
-      lgd4->font_name("Arial");
-      xlabel("Time [s]");
-      ylabel("Force " + forceUnit_);
+        auto p9 = plot(time, stopperForce);
+        p9->line_width(wdt);
+        p9->display_name("Stopper Force");
+        hold(on);
 
-      auto ax3 = subplot(3, 2, 5);
-      // ax3 -> size(500,500);
-      // title("Acceleration");
-      if (showUnsprungAcc == 1)
-      {
+        auto p10 = plot(time, tireElasticForce);
+        p10->line_width(wdt);
+        p10->display_name("Tire Force");
+        auto lgd4 = legend(on);
+        lgd4->font_name("Arial");
+        xlabel("Time [s]");
+        ylabel("Force " + forceUnit_);
+
+        auto ax3 = subplot(3, 2, 5);
         // ax3 -> size(500,500);
         // title("Acceleration");
-        auto p51 = plot(time, unsprungMassAccG);
-        p51->line_width(wdt);
-        p51->display_name("Unsprung");
-        hold(on);
+        if (showUnsprungAcc == 1)
+        {
+          // ax3 -> size(500,500);
+          // title("Acceleration");
+          auto p51 = plot(time, unsprungMassAccG);
+          p51->line_width(wdt);
+          p51->display_name("Unsprung");
+          hold(on);
+        }
+
+        if (showSprungAcc == 1)
+        {
+          auto p6 = plot(time, sprungMassAccG);
+          p6->line_width(wdt);
+          p6->display_name("Sprung");
+          auto lgd3 = legend(on);
+          lgd3->font_name("Arial");
+          xlabel("Time [s]");
+          ylabel("Acceleration " + accelerationUnit_);
+          hold(on);
+          auto p242 = plot(time, sprungMassAccGCompare);
+          p242->line_width(wdt);
+          p242->display_name("Sprung: Previous");
+          show();
+        }
       }
 
-      if (showSprungAcc == 1)
-      {
-        auto p6 = plot(time, sprungMassAccG);
-        p6->line_width(wdt);
-        p6->display_name("Sprung");
-        auto lgd3 = legend(on);
-        lgd3->font_name("Arial");
+      /*{
+
+        std::cout << "\nBuilding Position Plots. . .";
+
+        using namespace matplot;
+        int wdt = 2; // Line Width
+        auto h = figure(true);
+        h->name("Quarter Car Position"); // Figure Name
+        h->size(1900, 950);              // Figure Size
+
+        /*auto h32 = figure(true);
+        h32->name("Quarter Car"); // Figure Name
+        h32->size(1900, 950);     // Figure Size
+
+        auto ax123 = subplot(1, 2, 0);
+        // title("Vertical Position");
+        auto p233 = plot(time, sprungMassPosition);
+        p233->line_width(wdt);
+        p233->display_name("Sprung: Current");
         xlabel("Time [s]");
-        ylabel("Acceleration " + accelerationUnit_);
+        ylabel("Displacement " + displacementUnit_);
+        hold(on);
+        auto p27 = plot(time, sprungMassPositionCompare);
+        p27->line_width(wdt);
+        p27->display_name("Sprung: Previous");
+        hold(on);
+        if (showUnsprungDisp == 1)
+        {
+          // std::cout << "Plot Type1: showUnsprungPos: " << showUnsprungDisp;
+          auto p188 = plot(time, unsprungMassPosition);
+          //->display_name("Unsprung");
+          p188->line_width(wdt);
+          p188->display_name("Unsprung");
+        }
+
+        char showDiff = 'y';
+
+        if (showUnsprungRel == 1)
+        {
+          auto p20 = plot(time, relativeTireDisplacementVector);
+          p20->line_width(wdt);
+          p20->display_name("Tire Deformation");
+          auto p31 = plot(time, tireDefLimit, ":");
+          p31->line_width(1);
+          p31->display_name("Tire Def. Limit: Bump");
+        }
+
+        if (showSprungRel == 1)
+        {
+          auto p21 = plot(time, relativeDisplacementVector);
+          p21->line_width(wdt);
+          p21->display_name("Spring Deformation");
+          auto p31 = plot(time, springBumpLimit, ":");
+          p31->line_width(1);
+          p31->display_name("Spring Def. Limit: Bump");
+          auto p41 = plot(time, springReboundLimit, ":");
+          p41->line_width(1);
+          p41->display_name("Spring Def. Limit: Rebound");
+        }
+
+        auto ax132 = subplot(1, 2, 1);
+        title("PSD");
+        auto p01 = plot(frequencies, accelerationPSD);
+        p01->line_width(wdt);
+        p01->display_name("Sprung Mass Acceleration PSD: Current");
+        hold(on);
+        auto p012 = plot(frequencies, accelerationPSDCompare);
+        p012->line_width(wdt);
+        p012->display_name("Sprung Mass Acceleration PSD: Previous");
+        auto lgd01 = legend(on);
+        lgd01->font_name("Arial");
+        xlabel("Frequency [Hz]");
+        ylabel("g²/Hz");
+        xlim({0, xFreqLim});
         show();
-      }
+      }*/
     }
+
     else if (graphType == 1)
     {
 
@@ -835,32 +933,33 @@ int Simulation::Graph()
       ylabel("Force " + forceUnit_);
 
       auto ax3 = subplot(3, 2, 5);
+      // ax3 -> size(500,500);
+      // title("Acceleration");
+      if (showUnsprungAcc == 1)
+      {
+        // ax3 -> size(500,500);
+        // title("Acceleration");
+        auto p51 = plot(time, unsprungMassAccG);
+        p51->line_width(wdt);
+        p51->display_name("Unsprung");
+        hold(on);
+      }
 
       if (showSprungAcc == 1)
       {
         auto p6 = plot(time, sprungMassAccG);
         p6->line_width(wdt);
-        p6->display_name("Sprung: Current");
+        p6->display_name("Sprung");
+        auto lgd3 = legend(on);
+        lgd3->font_name("Arial");
         hold(on);
-        auto p60 = plot(time, sprungMassAccGCompare);
-        p60->line_width(wdt);
-        p60->display_name("Sprung: Previous");
-        auto lgd35 = legend(on);
-        lgd35->font_name("Arial");
+        auto p242 = plot(time, sprungMassAccGCompare);
+        p242->line_width(wdt);
+        p242->display_name("Sprung: Previous");
         xlabel("Time [s]");
         ylabel("Acceleration " + accelerationUnit_);
-        hold(on);
+        show();
       }
-
-      if (showUnsprungAcc == 1)
-      {
-        std::cout << "showUnsprungAcc: " << showUnsprungAcc;
-        auto p5 = plot(time, unsprungMassAccG);
-        p5->line_width(wdt);
-        p5->display_name("Unsprung");
-      }
-
-      show();
     }
 
     int rep;

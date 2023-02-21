@@ -136,6 +136,7 @@ private:
     double CalculateAbruptness(const std::vector<double>& sprungMassAcceleration, double duration);
     double CalcTimeAccRMS(const std::vector<double>& data); 
     void ClearCSV(const std::string& filename);
+    void PlotConfig();
     
 
 public:
