@@ -7,6 +7,7 @@ public:
     virtual double getDampingCoefficient(double velocity=0) = 0; 
     virtual void setDampingCoefficient(double dampingCoefficient) = 0;
     virtual void setDampingRatio(double dampingRatio) = 0;
+    virtual void setTriggerDistance(double triggerDistance){};
 
 };
 
@@ -21,6 +22,21 @@ public:
     virtual double getDampingCoefficient(double velocity=0){return dampingCoefficient;};
     virtual void setDampingCoefficient(double dampingCoefficient){this-> dampingCoefficient = dampingCoefficient;}
     void setDampingRatio(double dampingRatio);
+};
+
+class LinearContactDamper : public Damper{
+private:
+    double dampingRatio;
+    double dampingCoefficient;
+    double triggerDistance;
+public:
+    LinearContactDamper() = default;
+    LinearContactDamper(double dampingRatio);
+    double getDampingRatio(double displacement = 0);
+    double getDampingCoefficient(double displacement = 0);
+    void setDampingRatio(double dampingRatio=0);
+    void setDampingCoefficient(double dampingCoefficient);
+    void setTriggerDistance(double triggerDistance) {this->triggerDistance = triggerDistance;}
 };
 
 /*class TireDamper : public Damper {

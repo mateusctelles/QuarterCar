@@ -360,7 +360,7 @@ void ModelBuilder::getStiffnessFromUser()
 void ModelBuilder::getTireDampingFromUser()
 {
     std::unique_ptr<Damper> tireDamper;
-    tireDamper = std::make_unique<LinearDamper>();
+    tireDamper = std::make_unique<LinearContactDamper>();
     double cTire;
     while (true)
     {
@@ -378,6 +378,8 @@ void ModelBuilder::getTireDampingFromUser()
     }
 
     tireDamper->setDampingCoefficient(cTire * sim.getDampingUnitScaling());
+    double triggerDistance = car_.getTireSpring()->getTriggerDistance();
+    tireDamper->setTriggerDistance(car_.getTireSpring()->getTriggerDistance());
     car_.setTireDamper(std::move(tireDamper));
 }
 
