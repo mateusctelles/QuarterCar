@@ -11,25 +11,25 @@ public:
     virtual double getStiffness(double displacement = 0) = 0;
     virtual double getFreeLength()=0;
     virtual double getTriggerDistance(){return 0;}
-    virtual double getPreload(){return 0;}
-    virtual void setPreload(double preload){};
+    //virtual double getPreload(){return 0;}
+    //virtual void setPreload(double preload){};
     virtual void setStiffness(double stiffness)=0;
     virtual void setFreeLength(double length)=0;
-    virtual void setTriggerDistance(double TriggerDistance){};
+    virtual void setTriggerDistance(double triggerDistance){};
 };
 
 class LinearSpring : public Spring {
 private:
     double stiffness;
     double length;
-    double preload;
+   // double preload;
 public:
     LinearSpring() = default;
     LinearSpring(double stiffness);
     double getStiffness(double displacement);
     double getFreeLength(){return length;};
-    double getPreload(){return preload;}
-    void setPreload(double preload){this->preload = preload;}
+    //double getPreload(){return preload;}
+   // void setPreload(double preload){this->preload = preload;}
     void setStiffness(double stiffness);
     void setFreeLength(double length){this->length = length;}
 };
@@ -38,14 +38,14 @@ class NonLinearSpring : public Spring {
 private:
     double stiffness;
     double length;
-    double preload;
+    //double preload;
 public:
     NonLinearSpring() = default;
     NonLinearSpring(double stiffness);
     double getStiffness(double displacement);
     double getFreeLength(){return length;}
-    double getPreload(){return preload;}
-    void setPreload(double preload){this->preload = preload;}
+   // double getPreload(){return preload;}
+    //void setPreload(double preload){this->preload = preload;}
     void setStiffness(double stiffness);
     void setFreeLength(double length){this->length = length;} 
 };

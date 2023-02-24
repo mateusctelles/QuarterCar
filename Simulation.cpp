@@ -145,8 +145,8 @@ void Simulation::StaticEquilibrium(Car &car)
   // std::cout << "\n(Inside StaticEquilibrium Method) Available Rebound Travel: " << car.getReboundStopSpring()->getTriggerDistance();
   car.setStaticHeight(sprungMassInitialPosition);
   car.setTireStaticHeight(unsprungMassInitialPosition);
-  car.getSpring()->setPreload(suspSpringDeflection_ * car.getSpring()->getStiffness(0));
-  car.getTireSpring()->setPreload(tireSpringDeflection_ * car.getTireSpring()->getStiffness(0));
+ // car.getSpring()->setPreload(suspSpringDeflection_ * car.getSpring()->getStiffness(0));
+  //car.getTireSpring()->setPreload(tireSpringDeflection_ * car.getTireSpring()->getStiffness(0));
   int selection;
   printStaticEquilibriumResults();
 }
@@ -399,8 +399,8 @@ double Simulation::CalculateAbruptness(const std::vector<double> &sprungMassAcce
 
 std::vector<double> Simulation::ComputeDelay(const std::vector<double> &PSD, const std::vector<double> &frequencies)
 {
-  std::cout << "\nCalculating Delays. . .";
-  std::cout << "\n PSD Size: " << PSD.size() << ", frequencies size: " << frequencies.size();
+  //std::cout << "\nCalculating Delays. . .";
+  //std::cout << "\n PSD Size: " << PSD.size() << ", frequencies size: " << frequencies.size();
   int N = PSD.size();
   std::vector<double> delayVector(N, 0);
   for (int i = 1; i < N; i++)
@@ -422,6 +422,7 @@ int Simulation::Graph()
   int graphCount = 0;
   int graphType = 2;
   int graphOpt;
+  int rep;
   int togglePlot;
   int showSprungRel;
   int showUnsprungRel;
@@ -687,83 +688,6 @@ int Simulation::Graph()
           show();
         }
       }
-
-      /*{
-
-        std::cout << "\nBuilding Position Plots. . .";
-
-        using namespace matplot;
-        int wdt = 2; // Line Width
-        auto h = figure(true);
-        h->name("Quarter Car Position"); // Figure Name
-        h->size(1900, 950);              // Figure Size
-
-        /*auto h32 = figure(true);
-        h32->name("Quarter Car"); // Figure Name
-        h32->size(1900, 950);     // Figure Size
-
-        auto ax123 = subplot(1, 2, 0);
-        // title("Vertical Position");
-        auto p233 = plot(time, sprungMassPosition);
-        p233->line_width(wdt);
-        p233->display_name("Sprung: Current");
-        xlabel("Time [s]");
-        ylabel("Displacement " + displacementUnit_);
-        hold(on);
-        auto p27 = plot(time, sprungMassPositionCompare);
-        p27->line_width(wdt);
-        p27->display_name("Sprung: Previous");
-        hold(on);
-        if (showUnsprungDisp == 1)
-        {
-          // std::cout << "Plot Type1: showUnsprungPos: " << showUnsprungDisp;
-          auto p188 = plot(time, unsprungMassPosition);
-          //->display_name("Unsprung");
-          p188->line_width(wdt);
-          p188->display_name("Unsprung");
-        }
-
-        char showDiff = 'y';
-
-        if (showUnsprungRel == 1)
-        {
-          auto p20 = plot(time, relativeTireDisplacementVector);
-          p20->line_width(wdt);
-          p20->display_name("Tire Deformation");
-          auto p31 = plot(time, tireDefLimit, ":");
-          p31->line_width(1);
-          p31->display_name("Tire Def. Limit: Bump");
-        }
-
-        if (showSprungRel == 1)
-        {
-          auto p21 = plot(time, relativeDisplacementVector);
-          p21->line_width(wdt);
-          p21->display_name("Spring Deformation");
-          auto p31 = plot(time, springBumpLimit, ":");
-          p31->line_width(1);
-          p31->display_name("Spring Def. Limit: Bump");
-          auto p41 = plot(time, springReboundLimit, ":");
-          p41->line_width(1);
-          p41->display_name("Spring Def. Limit: Rebound");
-        }
-
-        auto ax132 = subplot(1, 2, 1);
-        title("PSD");
-        auto p01 = plot(frequencies, accelerationPSD);
-        p01->line_width(wdt);
-        p01->display_name("Sprung Mass Acceleration PSD: Current");
-        hold(on);
-        auto p012 = plot(frequencies, accelerationPSDCompare);
-        p012->line_width(wdt);
-        p012->display_name("Sprung Mass Acceleration PSD: Previous");
-        auto lgd01 = legend(on);
-        lgd01->font_name("Arial");
-        xlabel("Frequency [Hz]");
-        ylabel("g²/Hz");
-        xlim({0, xFreqLim});
-        show();
-      }*/
     }
 
     else if (graphType == 1)
@@ -802,7 +726,6 @@ int Simulation::Graph()
       hold(on);
       if (showUnsprungDisp == 1)
       {
-        std::cout << "Plot Type1: showUnsprungPos: " << showUnsprungDisp;
         auto p188 = plot(time, unsprungMassPosition);
         //->display_name("Unsprung");
         p188->line_width(wdt);
@@ -962,7 +885,7 @@ int Simulation::Graph()
       }
     }
 
-    int rep;
+    //int rep;
     while (true)
     {
       std::cout << "\nNext Action:";
@@ -985,26 +908,27 @@ int Simulation::Graph()
       }
     }
 
-    graphOpt = rep;
-    if (graphOpt != 2 && graphOpt != 4)
+    //graphOpt = rep;
+    // if (rep != 2 && rep != 4)
+    //{
+    if (rep == 1 || rep == 3)
     {
-      if (graphOpt == 1 || graphOpt == 3)
+      std::cout << "\nDo you wish to keep the current calculated outputs in the plot, to be compared with the next graph? (y or n)\nSelection: ";
+      std::cin >> keepPlot;
+      if (keepPlot == 'y')
       {
-        std::cout << "\nDo you wish to keep the current calculated outputs in the plot, to be compared with the next graph? (y or n)\nSelection: ";
-        std::cin >> keepPlot;
-        if (keepPlot == 'y')
-        {
-          ExportMetrics();
-        }
-        break;
+        ExportMetrics();
       }
-    }
-    else if (graphOpt == 5)
-    {
-      std::exit(0);
       break;
     }
-    else if (graphOpt == 2)
+    // }
+    else if (rep == 5)
+    {
+      //std::exit(0);
+      //graphOpt = rep;
+      break;
+    }
+    else if (rep == 2)
     {
       while (true)
       {
@@ -1097,11 +1021,12 @@ int Simulation::Graph()
         break;
       }
     }
-    else if (graphOpt == 4)
-      graphOpt = 2;
+    else if (rep == 4)
+      rep = 2;
+    //graphOpt = rep;
   }
 
-  return graphOpt;
+  return rep;
 }
 
 void Simulation::CopyPlots()

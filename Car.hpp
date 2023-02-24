@@ -54,7 +54,7 @@ public:
     inline double getUnsprungMass() { return unsprungMass_; }
 
     // Setters
-    inline void setDR(double DampingRatio) { dampingRatio_ = DampingRatio; }
+    //inline void setDR(double DampingRatio) { dampingRatio_ = DampingRatio; }
     //inline void setTireDamping(double tireDamping) { this->tireDamping_ = tireDamping; }
     inline void setStaticHeight(double staticHeight) { staticHeight_ = staticHeight;}
     inline void setTireStaticHeight(double tireStaticHeight) { this->tireStaticHeight = tireStaticHeight;}
@@ -75,7 +75,7 @@ public:
     double CalcSprungNatFreq();
     double CalcSuspDamp(double velocity);
 
-    void printAttributes();
+    //void printAttributes();
 };
 
 #endif
